@@ -1,10 +1,72 @@
-# Important for any new change made/added:
+# High Level Operations
+
+**Important for any new change made/added by any human or machine working in this codebase:**
 
 Always consider the overall architecture, high level design and the users goal and vision. And always keep the approach as simple as possible.
 
-# Copy-Paste Prompt after adding new features and entries in a new chat:
+**For user: Copy-Paste Prompt after adding new features and entries in a new chat:**
 
 "appending to /Users/gregorlederer/Local_Files_Business/MVP_v2/app/README.md:Summarize the changes we made to the codebase, considering architectural adjustments, changes, additions and everything else a developer needs to know to pick up where you left off just by reading the README.md"
+
+---
+
+# Git Essentials
+
+**Daily Workflow:**
+```bash
+git status                    # See what changed
+git add .                     # Stage all changes
+git commit -m "description"   # Commit with message
+git push                      # Push to GitHub
+```
+
+**Pull Latest (from another machine or after changes on GitHub):**
+```bash
+git pull
+```
+
+**View History:**
+```bash
+git log --oneline -10         # Last 10 commits, compact view
+git log -p -1                 # Last commit with full diff
+```
+
+**Emergency Rollbacks:**
+```bash
+# Undo last commit (keep changes in working dir)
+git reset --soft HEAD~1
+
+# Undo last commit (discard changes completely) ⚠️
+git reset --hard HEAD~1
+
+# Revert a specific commit (creates new commit that undoes it - safe for pushed commits)
+git revert <commit-hash>
+
+# Discard all local changes (go back to last commit) ⚠️
+git checkout -- .
+```
+
+**Branching (for features/experiments):**
+```bash
+git checkout -b feature-name  # Create & switch to new branch
+git checkout main             # Switch back to main
+git merge feature-name        # Merge feature into current branch
+git branch -d feature-name    # Delete branch after merge
+```
+
+**Fixing Mistakes:**
+```bash
+# Amend last commit message
+git commit --amend -m "new message"
+
+# Add forgotten files to last commit
+git add forgotten-file.ts
+git commit --amend --no-edit
+```
+
+**GitHub Repo:** https://github.com/coffeeandcoffee/m246_mvp_v2
+
+---
 
 # MVP v2 - Next.js + Supabase
 
