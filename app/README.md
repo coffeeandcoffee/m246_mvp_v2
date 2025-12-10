@@ -8,6 +8,8 @@ Always consider the overall architecture, high level design and the users goal a
 
 "appending to /Users/gregorlederer/Local_Files_Business/MVP_v2/app/README.md:Summarize the changes we made to the codebase, considering architectural adjustments, changes, additions and everything else a developer needs to know to pick up where you left off just by reading the README.md"
 
+"before commiting, please ensure the readme properly represents the current architecture and everything in there is 100% true and 100% up to date."
+
 ---
 
 # Git Essentials
@@ -145,3 +147,31 @@ npx pm2 restart mvp2
 2. `/dashboard` is protected - redirects to `/login` if not authenticated
 3. Middleware refreshes sessions on every request
 4. Server actions handle sign up/in/out with Supabase
+
+---
+
+## Changelog
+
+### 2025-12-10: GitHub Setup & Documentation
+
+**Changes Made:**
+
+1. **Created root `.gitignore`** at `/MVP_v2/.gitignore`
+   - Excludes `node_modules/`, `.env.local`, `.next/`, `.DS_Store`, and other build artifacts
+   - Protects sensitive environment variables from being committed
+
+2. **Fixed nested Git repository issue**
+   - Removed embedded `.git` folder from `app/` (left over from `create-next-app`)
+   - This ensures the entire project is tracked as a single repository
+
+3. **Initialized GitHub repository**
+   - Remote: https://github.com/coffeeandcoffee/m246_mvp_v2
+   - Branch: `main`
+   - All 28 project files committed and pushed
+
+4. **Added Git Essentials section to README**
+   - Daily workflow commands
+   - Emergency rollback procedures
+   - Branching and fixing mistakes
+
+**No code/architecture changes** - this session focused purely on version control setup and documentation.
