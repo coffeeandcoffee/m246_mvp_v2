@@ -85,18 +85,28 @@ A Next.js 16 application with Supabase authentication, deployed to https://membe
 ## Project Structure
 
 ```
-src/
-├── app/
-│   ├── auth/actions.ts      # Server actions: login, signup, signout
-│   ├── login/page.tsx       # Login page
-│   ├── signup/page.tsx      # Signup page
-│   ├── dashboard/page.tsx   # Protected dashboard
-│   └── page.tsx             # Landing page
-├── middleware.ts            # Auth middleware (session refresh + route protection)
-└── utils/supabase/
-    ├── client.ts            # Browser Supabase client
-    ├── server.ts            # Server Supabase client
-    └── middleware.ts        # Session handling utilities
+app/
+├── deploy.sh                    # Deployment script for production
+├── nginx-member.m246.org.conf   # Nginx configuration
+├── public/                      # Static assets (SVGs, icons)
+└── src/
+    ├── app/
+    │   ├── auth/
+    │   │   └── actions.ts       # Server actions: login, signup, signout
+    │   ├── dashboard/
+    │   │   └── page.tsx         # Protected dashboard
+    │   ├── login/
+    │   │   └── page.tsx         # Login page
+    │   ├── signup/
+    │   │   └── page.tsx         # Signup page
+    │   ├── globals.css          # Global styles
+    │   ├── layout.tsx           # Root layout
+    │   └── page.tsx             # Landing page
+    ├── middleware.ts            # Auth middleware (session refresh + route protection)
+    └── utils/supabase/
+        ├── client.ts            # Browser Supabase client
+        ├── server.ts            # Server Supabase client
+        └── middleware.ts        # Session handling utilities
 ```
 
 ## Environment Variables
