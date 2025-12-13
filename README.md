@@ -603,112 +603,19 @@ After schema changes, regenerate types:
 npx supabase gen types typescript --linked > src/types/database.ts
 ```
 
-## Frontend Implementation ✅
-
-### App Routes
-
-| Route | Purpose |
-|-------|---------|
-| `/login` | Login page (email + password, dark theme) |
-| `/signup` | Signup with invite code validation |
-| `/app` | Main entry - routes to correct sequence |
-| `/app/onboarding` | 12-page onboarding sequence |
-| `/app/morning` | 22-page morning sequence with audio |
-| `/app/evening` | 14-page evening sequence with ratings |
-| `/app/waiting` | Waiting page with feature links |
-| `/app/feature/[slug]` | Feature placeholder with suggestion form |
-
-### Project Structure (Updated)
-
-```
-app/src/
-├── app/
-│   ├── (app)/                     # Protected app routes
-│   │   ├── layout.tsx             # Sequence router
-│   │   ├── page.tsx               # Route dispatcher
-│   │   ├── onboarding/page.tsx    # 12-page onboarding
-│   │   ├── morning/page.tsx       # 22-page morning + audio
-│   │   ├── evening/page.tsx       # 14-page evening + ratings
-│   │   ├── waiting/page.tsx       # Feature links + audio
-│   │   └── feature/[slug]/page.tsx
-│   ├── api/validate-invite/route.ts
-│   ├── auth/actions.ts            # login, signup (with invite), signout
-│   ├── login/page.tsx
-│   ├── signup/page.tsx
-│   └── globals.css                # M246 dark theme
-├── components/
-│   ├── FeedbackButton.tsx         # help/error/stuck → WhatsApp
-│   ├── ui/
-│   │   ├── Button.tsx
-│   │   ├── TextInput.tsx
-│   │   ├── ScaleRating.tsx        # 1-10 rating
-│   │   └── Checkbox.tsx
-│   └── sequences/
-│       ├── SequencePage.tsx       # Page wrapper
-│       └── AudioPlayer.tsx        # Play/pause, progress, 80% unlock
-├── lib/sequences/
-│   ├── types.ts                   # PageType, SequencePage interfaces
-│   ├── onboarding.ts              # 12 page definitions
-│   ├── morning.ts                 # 22 page definitions
-│   ├── evening.ts                 # 14 page definitions
-│   └── index.ts
-├── types/database.ts              # Generated from Supabase
-└── utils/supabase/
-    ├── client.ts                  # Browser client
-    ├── server.ts                  # Server client
-    └── middleware.ts
-```
-
-### Sequence Flow Logic
-
-```
-User Login
-    │
-    ├── Not onboarded? ──────────────▶ /app/onboarding
-    │                                       │
-    │                                       ▼
-    │                               Complete & redirect
-    │                                       │
-    ├── Never completed evening? ───▶ /app/evening
-    │                                       │
-    │                                       ▼
-    │                               Complete & redirect
-    │                                       │
-    ├── Time < 3am? ────────────────▶ Yesterday's evening
-    │
-    ├── Morning not done? ──────────▶ /app/morning
-    │                                       │
-    │                                       ▼
-    │                               Complete & redirect
-    │                                       │
-    └── After reflection time? ─────▶ /app/evening
-                                    │
-                                    ▼
-                            /app/waiting (feature links)
-```
-
-### Key Features Implemented
-
-1. **Invite Code Validation**: API route + action validates before signup
-2. **Progress Persistence**: Resume exactly where user left off
-3. **Branching Logic**: v1-o-3 (yes/no), v1-e-2 (commit/day-off)
-4. **Night Owl Logic**: Before 3am counts as previous day's evening
-5. **Audio Player**: 80% playback required to unlock "Next"
-6. **Scale Ratings**: 1-10 for all evening metrics
-7. **Feedback System**: help/error/stuck opens WhatsApp with prefilled message
-8. **Feature Suggestions**: Form on placeholder pages saves to DB
-
-### Default Audio
-
-Located at: `audio/default/default_grounding_audio.mp3` in Supabase Storage
-
-URL: `https://fkwuvonuicokyxvdqxgq.supabase.co/storage/v1/object/public/audio/default/default_grounding_audio.mp3`
-
 ---
 
-## Next Steps
+## Next Steps (Frontend Integration)
 
-1. **Deploy to production**: `./deploy.sh`
-2. **Test complete flow**: Signup → Onboarding → Evening → Morning → Wait → Evening
-3. **Add real audio content**: Upload user-specific audio files
-4. **Admin dashboard**: Build analytics queries on `page_events`
+Priority order for implementation:
+
+1. **Auth flow with invite codes**: Modify signup to validate code before creating user
+2. **Onboarding sequence**: Pages v1-o-1 through v1-o-12
+3. **Morning sequence**: Pages v1-m-1 through v1-m-22
+4. **Evening sequence**: Pages v1-e-1 through v1-e-14
+5. **Progress persistence**: Save/restore position on page load
+6. **Audio player**: Integrate with Storage bucket
+7. **Admin dashboard**: Analytics queries on `page_events`
+
+See `app/supabase/migrations/00004_create_metrics.sql` for full list of data points to collect.
+
