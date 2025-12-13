@@ -74,6 +74,235 @@ git commit --amend --no-edit
 
 A Next.js 16 application with Supabase authentication, deployed to https://member.m246.org
 
+---
+
+# Product Vision (v2025-12-13)
+
+> **Core Mission**: Help entrepreneurs increase their "Execution Flow Days" — days of confident, doubt-free, focused execution — through daily structured sequences and behavioral tracking.
+
+## I. Design Principles
+
+| Principle | Implementation |
+|-----------|----------------|
+| **Elite Minimalism** | Black/dark background, fine lines, white/gray text |
+| **Frictionless UX** | Single action per page, maximum one sentence |
+| **Zero Overwhelm** | Strip away everything not essential |
+| **Personalized Truth** | Use user's name, data, timezone — never generic |
+
+## II. Feedback Loop System
+
+Every page includes a small gray underlined "help/error/stuck" link:
+
+- **Logged**: Click events tracked per user + page for friction analysis
+- **Popup**: 3 options that open WhatsApp with prefilled messages:
+  - `help` → `I need help (pageid:xxx)...`
+  - `error` → `I encountered error (pageid:xxx)...`
+  - `stuck` → `I am stuck (pageid:xxx)...`
+- **Support Number**: `+49 152 59495693`
+
+## III. Auth & Signup Flow
+
+```
+Unauthenticated → /login (email + password)
+                    ↓
+              "Don't have an account?"
+                    ↓
+              /signup (email + password + invite code)
+                    ↓
+              Validate invite code → Create user
+                    ↓
+              Auto-create profile + 4 referral codes
+                    ↓
+              First login → Onboarding sequence
+```
+
+**Invite Codes**:
+- Universal: `M246MVP` (toggleable, unlimited use)
+- Referral: 4 unique 8-char codes per user (single-use)
+
+## IV. Sequence Logic
+
+### State Machine
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        USER STATE FLOW                           │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  NOT ONBOARDED ──────────► ONBOARDING SEQUENCE                   │
+│        │                         │                               │
+│        │                         ▼                               │
+│        │                  onboarded = TRUE                       │
+│        │                         │                               │
+│        │                         ▼                               │
+│        │              ┌─────────────────────┐                    │
+│        │              │ No evening complete │──► EVENING SEQ     │
+│        │              │    on any day?      │    (first time)    │
+│        │              └─────────────────────┘                    │
+│        │                         │                               │
+│        ▼                         ▼                               │
+│  ┌───────────────────────────────────────────┐                   │
+│  │          DAILY SEQUENCE ROUTER            │                   │
+│  │                                           │                   │
+│  │  Time < 3am? → Yesterday's EVENING SEQ    │                   │
+│  │  Time ≥ 3am AND before reflection time?   │                   │
+│  │              → MORNING SEQ                │                   │
+│  │  Time ≥ reflection time?                  │                   │
+│  │              → EVENING SEQ                │                   │
+│  └───────────────────────────────────────────┘                   │
+│                                                                  │
+│  Resume exactly where user left off (page + path choices)        │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Key Rules
+
+1. **Onboarding**: Once per user lifetime, day-unspecific progress
+2. **Morning**: Once per day, active from 3am in user timezone
+3. **Evening**: Once per day, active after user-defined reflection time
+4. **Night Owl**: Midnight–3am counts as previous day's evening
+5. **Backfill**: If yesterday's evening empty, collect in morning (v1-m-21)
+
+## V. UXv1 Sequences
+
+### V.i Onboarding Sequence (12 pages)
+
+| Page | Content | Collects |
+|------|---------|----------|
+| `v1-o-1` | "How can we call you?" | `user_name` |
+| `v1-o-2` | "Is this your correct Timezone?" (prefilled from IP) | `user_timezone` |
+| `v1-o-3` | "Do you remember the last day you did not overthink...?" | `remembers_efd` (yes/no → branch) |
+| `v1-o-4` | [if yes] "When was this day?" | `last_efd_date` |
+| `v1-o-5` | "We call such days Execution Flow Days." | — |
+| `v1-o-6` | "Those days feel really good..." | — |
+| `v1-o-7` | "Once such a special day is over..." | — |
+| `v1-o-8` | "Such days cause you to:" (checklist animation) | — |
+| `v1-o-9` | "Our goal is to help you increase..." | — |
+| `v1-o-10` | "Successful entrepreneurs achieve up to 20/month" | — |
+| `v1-o-11` | [if date known] "Your last EFD was [DATE]..." | — |
+| `v1-o-12` | [if date unknown] "You couldn't remember..." | — |
+
+**After onboarding** → Forward to Evening Sequence (skip first morning)
+
+### V.ii Morning Sequence (22 pages)
+
+| Page | Content | Collects |
+|------|---------|----------|
+| `v1-m-1` | "Step #1" ✓ "NAME, you showed up. Well done." | — |
+| `v1-m-2` | Checkbox: "I will not open other apps..." [Commit] | — |
+| `v1-m-3` | "Step #2: Put headphones in." [Done] | — |
+| `v1-m-4` | "Now we get your brain into the right state..." | — |
+| `v1-m-5`–`v1-m-11` | "Read Carefully:" mental preparation slides | — |
+| `v1-m-12` | Audio player with progress bar (80% unlock) | `audio_play` event |
+| `v1-m-13` | "Step #2 = DONE" (personalized compliment) | — |
+| `v1-m-14` | "You can listen to your audio anytime..." | — |
+| `v1-m-15` | "Step #3" 2/3 progress | — |
+| `v1-m-16` | "The Magic Task" (text input) | `magic_task` |
+| `v1-m-17` | Display task, "Focus only on this" [Task Done] | `magic_task_completed` |
+| `v1-m-18` | "Step #3 = DONE" 3/3 (personalized) | — |
+| `v1-m-19` | "When for 5-min reflection?" (time picker) | `evening_reflection_time` |
+| `v1-m-20` | "Set alarm on your phone" | — |
+| `v1-m-21` | [if yesterday empty] "We missed yesterday's reflection" → backfill | — |
+| `v1-m-22` | Final page: summary + feature links + audio player | `link_click` events |
+
+**Feature Links** (tracked):
+- Scientific Background of the M246-Program
+- Join a Community Call
+- Get an Accountability Partner
+- Get more structure in my day
+- Invite-Link for my Friends join M246
+- Edit my Reality-Defining Audio
+
+### V.iii Evening Sequence (14 pages)
+
+| Page | Content | Collects |
+|------|---------|----------|
+| `v1-e-1` | "Your 5-min reflection is ready..." | — |
+| `v1-e-2` | "Will you commit to open this app tomorrow?" [Commit]/[Day off] | `committed_tomorrow`, `taking_day_off` → branch |
+| `v1-e-3` | [if day off] "Good, taking a day off is important." | — |
+| `v1-e-4` | "When will you return?" [Day after tomorrow]/[Later] | — |
+| `v1-e-5` | [if later] Date picker | `return_date` |
+| `v1-e-6` | "Commit to return on [DATE] morning?" [Commit] | — |
+| `v1-e-7` | "How positive today?" (1–10) | `rating_positivity` |
+| `v1-e-8` | "How confident?" (1–10) | `rating_confidence` |
+| `v1-e-9` | "How much overthinking?" (1–10) | `rating_overthinking` |
+| `v1-e-10` | "How much intuition?" (1–10) | `rating_intuition` |
+| `v1-e-11` | "How much doubt?" (1–10) | `rating_doubt` |
+| `v1-e-12` | "How happy?" (1–10) | `rating_happiness` |
+| `v1-e-13` | "How quick were decisions?" (1–10) | `rating_decision_speed` |
+| `v1-e-14` | "Great job NAME. See you [DATE] morning." | — |
+
+## VI. Architecture Principles
+
+### Data vs. Pages Separation
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  UXv1 Pages → UXv2 Pages → UXvN    (Frontend changes OK)   │
+├─────────────────────────────────────────────────────────────┤
+│               STABLE DATA LAYER                             │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
+│  │   metrics   │ │ daily_logs  │ │  responses  │            │
+│  │  (schema)   │ │  (per day)  │ │  (values)   │            │
+│  └─────────────┘ └─────────────┘ └─────────────┘            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- **Metrics** define WHAT data to collect (stable schema)
+- **Pages** define HOW to collect it (can change per UX version)
+- New UX version = new rows with `ux_version = 'v2'`, old data intact
+
+### Flexibility Requirements
+
+| Need | Solution |
+|------|----------|
+| Add new questions | Insert new `metrics` + `pages` rows |
+| Change page order | Update `display_order` in `pages` |
+| User custom questions | Future: `user_custom_metrics` table |
+| Audio customization | Future: ElevenLabs integration + track library |
+
+## VII. Future Roadmap
+
+### Phase A: Logging (Current)
+- ✅ Database schema for all sequences
+- ⬜ Frontend: Onboarding/Morning/Evening sequences
+- ⬜ Progress tracking and seamless resume
+
+### Phase B: Insights Tab
+- Behavioral correlates visualization
+- Execution Flow Day frequency trends
+- Personalized recommendations
+
+### Phase C: Customization
+- User-defined custom metrics in sequences
+- Reality-Defining Audio editor (ElevenLabs TTS)
+- Custom underlay tracks from library
+- Spotify integration (future)
+
+### Phase D: Community
+- Community calls (initially Google Meet links)
+- Accountability partner matching
+- In-app meetings (future)
+- AI-guided counseling with voice input
+
+## VIII. Admin Dashboard KPIs
+
+Track per UX version + date period:
+
+| Metric | Query |
+|--------|-------|
+| Page abandonment | `page_events` WHERE `event_type = 'page_abandon'` GROUP BY `page_key` |
+| Help/error/stuck clicks | `page_events` WHERE `event_type IN ('help_click', 'error_click', 'stuck_click')` |
+| Feature link popularity | `page_events` WHERE `event_type = 'link_click'` GROUP BY `metadata->>'link_key'` |
+| Avg starting EFDs | `metric_responses` WHERE `metric_key = 'last_efd_date'` |
+| Weekly EFD progression | Aggregate evening ratings by week |
+| Text suggestions | `feature_suggestions` table |
+
+**Export**: PDF report per UXvN version + date range
+
+---
+
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
