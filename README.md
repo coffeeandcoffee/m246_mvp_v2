@@ -219,12 +219,12 @@ Located in `app/supabase/migrations/`:
 00011_storage_bucket_docs.sql (documentation only)
 ```
 
-#### ⚠️ Manual Step Required: Storage Bucket
+#### ✅ Storage Bucket (Complete)
 
-Create the `audio` bucket manually in Supabase Dashboard:
-1. Go to **Storage** → **New Bucket**
-2. Name: `audio`, Public: `false`
-3. Add policies for authenticated users (see `00011_storage_bucket_docs.sql`)
+`audio` bucket created with RLS policies:
+- INSERT, SELECT, UPDATE, DELETE for authenticated users
+- Files stored at `audio/{user_id}/filename.mp3`
+- Default audio at `audio/default/default_grounding_audio.mp3`
 
 #### Supabase CLI Commands:
 
