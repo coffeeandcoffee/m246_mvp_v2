@@ -325,21 +325,24 @@ Track per UX version + date period:
 │   │   │   ├── api                     # API routes
 │   │   │   ├── auth
 │   │   │   │   └── actions.ts          # Server actions: signup, login, signout
-│   │   │   ├── dashboard
-│   │   │   │   └── page.tsx            # Protected dashboard
-│   │   │   ├── login
-│   │   │   │   └── page.tsx            # Login page
-│   │   │   ├── signup
-│   │   │   │   └── page.tsx            # Signup page with invite code
-│   │   │   ├── globals.css             # Tailwind imports
+│   │   │   ├── dashboard               # Protected dashboard
+│   │   │   ├── login                   # Login page
+│   │   │   ├── onboarding              # Onboarding flow (pages 1-5)
+│   │   │   │   ├── 1/page.tsx          # "How can we call you?"
+│   │   │   │   ├── 2/page.tsx          # Timezone confirmation
+│   │   │   │   ├── 3/page.tsx          # EFD yes/no question
+│   │   │   │   ├── 4/page.tsx          # Date picker (placeholder)
+│   │   │   │   ├── 5/page.tsx          # EFD explanation (placeholder)
+│   │   │   │   ├── actions.ts          # Server actions for onboarding
+│   │   │   │   └── layout.tsx          # Shared layout with help popup
+│   │   │   ├── signup                  # Signup page with invite code
+│   │   │   ├── globals.css             # Design system + Tailwind
 │   │   │   └── layout.tsx              # Root layout
 │   │   ├── components                  # Reusable UI components
 │   │   ├── lib                         # Utility libraries
 │   │   ├── types
 │   │   │   └── database.ts             # Generated Supabase types
-│   │   ├── utils/supabase
-│   │   │   ├── middleware.ts           # Session handling
-│   │   │   └── server.ts               # Server Supabase client
+│   │   ├── utils/supabase              # Supabase client utilities
 │   │   └── middleware.ts               # Auth middleware
 │   └── supabase/migrations             # Database migrations (13 files)
 └── README.md
@@ -422,7 +425,61 @@ npx pm2 restart mvp2
 
 ```
 Signup form → validate_invite_code(code) → Invalid? Show error
-                                        → Valid? Create user → use_invite_code() → Dashboard
+                                        → Valid? Create user → use_invite_code() → /onboarding/1
+```
+
+---
+
+### 2025-12-14: Onboarding UI (Pages 1-3)
+
+**First 3 onboarding pages with elite minimalist black/white design.**
+
+#### Design System:
+
+- Pure black background (`#000000`)
+- White text, gray secondary text
+- White outline buttons (fill on hover)
+- CSS custom properties in `globals.css`
+
+#### Files Created:
+
+| File | Purpose |
+|------|---------|
+| `onboarding/layout.tsx` | Shared layout with help/error/stuck popup |
+| `onboarding/actions.ts` | Server actions: saveDisplayName, saveTimezone, saveMetricResponse |
+| `onboarding/1/page.tsx` | "How can we call you?" → saves `name` |
+| `onboarding/2/page.tsx` | Timezone auto-detect + confirm → saves `timezone` |
+| `onboarding/3/page.tsx` | EFD yes/no → saves to `metric_responses`, branches correctly |
+| `onboarding/4/page.tsx` | Date picker (placeholder) |
+| `onboarding/5/page.tsx` | EFD explanation (placeholder) |
+
+#### Files Modified:
+
+| File | Change |
+|------|--------|
+| `globals.css` | Added CSS design system (variables, button classes) |
+| `signup/page.tsx` | Refactored to minimalist black/white design |
+| `login/page.tsx` | Refactored to match signup design |
+| `auth/actions.ts` | Changed signup redirect: `/dashboard` → `/onboarding/1` |
+
+#### Onboarding Flow:
+
+```
+Signup → /onboarding/1 → /onboarding/2 → /onboarding/3 → /onboarding/4 or /5
+         (name)          (timezone)       (EFD yes/no)    (branches based on answer)
+```
+
+#### Verification Query:
+
+Run this in Supabase SQL Editor to verify data saves correctly:
+
+```sql
+SELECT up.name, up.timezone, mr.value_text as efd_response, m.key as metric_key
+FROM user_profiles up
+LEFT JOIN metric_responses mr ON mr.user_id = up.user_id
+LEFT JOIN metrics m ON m.id = mr.metric_id
+WHERE up.name IS NOT NULL
+ORDER BY up.created_at DESC LIMIT 5;
 ```
 
 ---
@@ -645,8 +702,8 @@ npx supabase gen types typescript --linked > src/types/database.ts
 
 Priority order for implementation:
 
-1. **Auth flow with invite codes**: Modify signup to validate code before creating user
-2. **Onboarding sequence**: Pages v1-o-1 through v1-o-12
+1. ~~**Auth flow with invite codes**~~: ✅ Done
+2. **Onboarding sequence**: Pages v1-o-1 through v1-o-12 (pages 1-3 done (+ date picker!), 4-12 remaining)
 3. **Morning sequence**: Pages v1-m-1 through v1-m-22
 4. **Evening sequence**: Pages v1-e-1 through v1-e-14
 5. **Progress persistence**: Save/restore position on page load

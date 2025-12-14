@@ -1,9 +1,7 @@
 /**
- * LOGIN PAGE
+ * LOGIN PAGE - Elite Minimalist Design
  * 
- * Similar structure to signup, but simpler:
- * - Just email and password
- * - No invite code needed
+ * Pure black background, white outline buttons, maximum simplicity.
  */
 
 'use client'
@@ -29,73 +27,68 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+        <div className="min-h-screen flex flex-col items-center justify-center px-6">
+            {/* Container */}
+            <div className="w-full max-w-sm">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-                    <p className="text-gray-400">Sign in to your account</p>
+                <div className="text-center mb-10">
+                    <h1 className="text-2xl font-semibold text-white mb-2">Welcome Back</h1>
+                    <p className="text-gray-500 text-sm">Sign in to your account</p>
                 </div>
 
-                {/* Form card */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/20 p-8">
-                    {/* Error message */}
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-                            <p className="text-red-300 text-sm">{error}</p>
-                        </div>
-                    )}
+                {/* Error message */}
+                {error && (
+                    <div className="mb-6 p-4 border border-red-500/30 rounded-lg bg-red-500/10">
+                        <p className="text-red-400 text-sm">{error}</p>
+                    </div>
+                )}
 
-                    <form action={handleSubmit} className="space-y-5">
-                        {/* Email field */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                                Email address
-                            </label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                placeholder="you@example.com"
-                            />
-                        </div>
+                {/* Form */}
+                <form action={handleSubmit} className="space-y-4">
+                    {/* Email */}
+                    <div>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            className="input-minimal"
+                            placeholder="Email address"
+                        />
+                    </div>
 
-                        {/* Password field */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                                Password
-                            </label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                                placeholder="••••••••"
-                            />
-                        </div>
+                    {/* Password */}
+                    <div>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            className="input-minimal"
+                            placeholder="Password"
+                        />
+                    </div>
 
-                        {/* Submit button */}
+                    {/* Submit button */}
+                    <div className="pt-2">
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-lg transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            className="btn-primary"
                         >
                             {loading ? 'Signing in...' : 'Sign In'}
                         </button>
-                    </form>
-
-                    {/* Link to signup */}
-                    <div className="mt-6 text-center">
-                        <p className="text-gray-400 text-sm">
-                            Don&apos;t have an account?{' '}
-                            <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-medium">
-                                Sign up
-                            </Link>
-                        </p>
                     </div>
+                </form>
+
+                {/* Link to signup */}
+                <div className="mt-8 text-center">
+                    <p className="text-gray-500 text-sm">
+                        Don&apos;t have an account?{' '}
+                        <Link href="/signup" className="text-gray-400 underline underline-offset-2 hover:text-white">
+                            Sign up
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>

@@ -80,8 +80,8 @@ export async function signup(formData: FormData) {
         }
     }
 
-    // Step 7: Success! Redirect to dashboard
-    redirect('/dashboard')
+    // Step 7: Success! Redirect to onboarding (first-time users)
+    redirect('/onboarding/1')
 }
 
 // ============================================================================
