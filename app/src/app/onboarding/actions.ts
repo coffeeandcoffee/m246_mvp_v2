@@ -121,3 +121,70 @@ export async function saveMetricResponse(formData: FormData) {
     // Redirect to the appropriate next page
     redirect(nextPage)
 }
+
+// ============================================================================
+// SAVE EFD DATE (v1-o-4)
+// ============================================================================
+
+export async function saveEfdDate(formData: FormData) {
+    const dateValue = formData.get('efdDate') as string
+
+    if (!dateValue) {
+        return { error: 'Please select a date' }
+    }
+
+    const supabase = await createClient()
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+        return { error: 'Not authenticated' }
+    }
+
+    // Save the date to metric_responses using p_value_date
+    const { error: rpcError } = await supabase.rpc('save_metric_response', {
+        p_user_id: user.id,
+        p_metric_key: 'last_efd_date',
+        p_daily_log_id: null,
+        p_value_text: null,
+        p_value_int: null,
+        p_value_date: dateValue,
+        p_value_time: null,
+        p_value_bool: null
+    })
+
+    if (rpcError) {
+        console.error('Failed to save EFD date:', rpcError)
+        return { error: 'Failed to save your response' }
+    }
+
+    redirect('/onboarding/5')
+}
+
+// ============================================================================
+// FINISH ONBOARDING (v1-o-11, v1-o-12)
+// ============================================================================
+
+export async function finishOnboarding() {
+    const supabase = await createClient()
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+        return { error: 'Not authenticated' }
+    }
+
+    // Mark user as onboarded
+    const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ onboarded: true })
+        .eq('user_id', user.id)
+
+    if (updateError) {
+        console.error('Failed to complete onboarding:', updateError)
+        return { error: 'Failed to complete onboarding' }
+    }
+
+    // Redirect to evening sequence
+    redirect('/evening')
+}

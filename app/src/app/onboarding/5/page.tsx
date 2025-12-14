@@ -1,25 +1,33 @@
 /**
- * ONBOARDING PAGE 5 (v1-o-5) - Placeholder
+ * ONBOARDING PAGE 5 (v1-o-5)
  * 
  * "We call such days Execution Flow Days."
- * First explanation page
- * 
- * TODO: Implement full content in future step
+ * First explanation page - no data collected
  */
+
+import Link from 'next/link'
 
 export default function OnboardingPage5() {
     return (
-        <div className="w-full max-w-sm text-center">
+        <div className="w-full max-w-md text-center">
+            {/* Page counter */}
             <p className="text-gray-600 text-sm mb-16">5 / 12</p>
-            <h1 className="text-2xl font-semibold text-white mb-8">
-                We call such days Execution Flow Days.
+
+            {/* Main content */}
+            <h1 className="text-2xl font-semibold text-white mb-6 leading-relaxed">
+                We call such days<br />
+                <span className="text-3xl">Execution Flow Days.</span>
             </h1>
-            <p className="text-gray-500 mb-8">
-                [More onboarding pages coming soon]
+
+            <p className="text-gray-400 mb-12 leading-relaxed">
+                Days where you act with clarity.<br />
+                Without second-guessing yourself.
             </p>
-            <a href="/dashboard" className="btn-primary inline-block">
-                Continue to Dashboard
-            </a>
+
+            {/* Continue button */}
+            <Link href="/onboarding/6" className="btn-primary inline-block">
+                Continue
+            </Link>
         </div>
     )
 }

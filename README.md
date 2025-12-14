@@ -703,7 +703,7 @@ npx supabase gen types typescript --linked > src/types/database.ts
 Priority order for implementation:
 
 1. ~~**Auth flow with invite codes**~~: ✅ Done
-2. **Onboarding sequence**: Pages v1-o-1 through v1-o-12 (pages 1-3 done (+ date picker!), 4-12 remaining)
+2. ~~**Onboarding sequence**~~: ✅ Done — Pages v1-o-1 through v1-o-12 complete with branching
 3. **Morning sequence**: Pages v1-m-1 through v1-m-22
 4. **Evening sequence**: Pages v1-e-1 through v1-e-14
 5. **Progress persistence**: Save/restore position on page load
