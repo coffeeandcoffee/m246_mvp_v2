@@ -313,29 +313,36 @@ Track per UX version + date period:
 
 ## Project Structure
 
+**To regenerate this tree:** `tree -I 'node_modules|.next|.git' --dirsfirst -L 4`
+
 ```
-app/
-├── deploy.sh                    # Deployment script for production
-├── nginx-member.m246.org.conf   # Nginx configuration
-├── public/                      # Static assets (SVGs, icons)
-└── src/
-    ├── app/
-    │   ├── auth/
-    │   │   └── actions.ts       # Server actions: login, signup, signout
-    │   ├── dashboard/
-    │   │   └── page.tsx         # Protected dashboard
-    │   ├── login/
-    │   │   └── page.tsx         # Login page
-    │   ├── signup/
-    │   │   └── page.tsx         # Signup page
-    │   ├── globals.css          # Global styles
-    │   ├── layout.tsx           # Root layout
-    │   └── page.tsx             # Landing page
-    ├── middleware.ts            # Auth middleware (session refresh + route protection)
-    └── utils/supabase/
-        ├── client.ts            # Browser Supabase client
-        ├── server.ts            # Server Supabase client
-        └── middleware.ts        # Session handling utilities
+.
+├── app
+│   ├── public                          # Static assets (SVGs, icons)
+│   ├── src
+│   │   ├── app
+│   │   │   ├── (app)                   # Grouped routes for sequences
+│   │   │   ├── api                     # API routes
+│   │   │   ├── auth
+│   │   │   │   └── actions.ts          # Server actions: signup, login, signout
+│   │   │   ├── dashboard
+│   │   │   │   └── page.tsx            # Protected dashboard
+│   │   │   ├── login
+│   │   │   │   └── page.tsx            # Login page
+│   │   │   ├── signup
+│   │   │   │   └── page.tsx            # Signup page with invite code
+│   │   │   ├── globals.css             # Tailwind imports
+│   │   │   └── layout.tsx              # Root layout
+│   │   ├── components                  # Reusable UI components
+│   │   ├── lib                         # Utility libraries
+│   │   ├── types
+│   │   │   └── database.ts             # Generated Supabase types
+│   │   ├── utils/supabase
+│   │   │   ├── middleware.ts           # Session handling
+│   │   │   └── server.ts               # Server Supabase client
+│   │   └── middleware.ts               # Auth middleware
+│   └── supabase/migrations             # Database migrations (13 files)
+└── README.md
 ```
 
 ## Environment Variables
@@ -390,6 +397,35 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2025-12-14: Auth System with Invite Code Validation
+
+**Implemented complete signup/login flow with invite code gating.**
+
+#### Files Created:
+
+| File | Purpose |
+|------|---------|
+| `src/app/globals.css` | Tailwind imports (was missing, caused build error) |
+| `src/app/auth/actions.ts` | Server actions: signup (with invite validation), login, signout |
+| `src/app/signup/page.tsx` | Signup form with email, password, invite code fields |
+| `src/app/login/page.tsx` | Login form with email, password fields |
+
+#### Database Migrations:
+
+| Migration | Fix |
+|-----------|----- |
+| `20251213235210_add_user_profile_insert_policy.sql` | Added missing INSERT RLS policies |
+| `20251213235719_fix_trigger_rls_bypass.sql` | Fixed `SET search_path` for RLS bypass |
+
+#### Auth Flow:
+
+```
+Signup form → validate_invite_code(code) → Invalid? Show error
+                                        → Valid? Create user → use_invite_code() → Dashboard
+```
+
+---
 
 ### 2025-12-13: Supabase Database Architecture
 
