@@ -185,6 +185,9 @@ Unauthenticated → /login (email + password)
 
 **After onboarding** → Forward to Evening Sequence (skip first morning)
 
+**Implementation Notes:**
+- `v1-o-2`: Prefill timezone from browser's `Intl.DateTimeFormat().resolvedOptions().timeZone`
+
 ### V.ii Morning Sequence (22 pages)
 
 | Page | Content | Collects |
@@ -206,6 +209,23 @@ Unauthenticated → /login (email + password)
 | `v1-m-21` | [if yesterday empty] "We missed yesterday's reflection" → backfill | — |
 | `v1-m-22` | Final page: summary + feature links + audio player | `link_click` events |
 
+**Audio Player (v1-m-12) Requirements:**
+- Play/pause button with progress bar
+- **[Next] button locked - NOT until 80% of audio played - but until 80% of audio duration since visit of page timestemp has passed - making it independent of users speed or audio player state - only dependent on time as single source of truth**
+- Lock screen play/pause support (mobile)
+- Loads user's custom audio (latest version) or default audio
+
+**Time Picker (v1-m-19) Prefill:**
+- Prefill with previous day's reflection time if available
+- If unavailable default to 18:00 for user
+
+**Feature Links (v1-m-22):**
+Each link leads to a placeholder page with:
+- "Coming soon" message
+- The heading is equal to the link name they clicked to get to the page
+- Text field: "This feature is in development. \nNAME, in your opinion, what would be helpful to see/have here? Suggest it - and see it implemented!"
+- Submit → confirmation → saves to `feature_suggestions` table
+
 **Feature Links** (tracked):
 - Scientific Background of the M246-Program
 - Join a Community Call
@@ -223,7 +243,7 @@ Unauthenticated → /login (email + password)
 | `v1-e-3` | [if day off] "Good, taking a day off is important." | — |
 | `v1-e-4` | "When will you return?" [Day after tomorrow]/[Later] | — |
 | `v1-e-5` | [if later] Date picker | `return_date` |
-| `v1-e-6` | "Commit to return on [DATE] morning?" [Commit] | — |
+| `v1-e-6` | "Commit to return on [WEEKDAY, DATE] morning?" [Commit] | — |
 | `v1-e-7` | "How positive today?" (1–10) | `rating_positivity` |
 | `v1-e-8` | "How confident?" (1–10) | `rating_confidence` |
 | `v1-e-9` | "How much overthinking?" (1–10) | `rating_overthinking` |
@@ -231,9 +251,267 @@ Unauthenticated → /login (email + password)
 | `v1-e-11` | "How much doubt?" (1–10) | `rating_doubt` |
 | `v1-e-12` | "How happy?" (1–10) | `rating_happiness` |
 | `v1-e-13` | "How quick were decisions?" (1–10) | `rating_decision_speed` |
-| `v1-e-14` | "Great job NAME. See you [DATE] morning." | — |
+| `v1-e-14` | "Great job NAME. See you [DATE]." — shows "tomorrow" only if returning next day | — |
 
-## VI. Architecture Principles
+**Rating Scale Labels** (shown under the "10"):
+
+| Rating | 10 = Label |
+|--------|------------|
+| Positivity | "I felt fantastic" |
+| Confidence | "Very confident" |
+| Overthinking | "Lots of overthinking & hesitation" |
+| Intuition | "Very much" |
+| Doubt | "Lots of doubt" |
+| Happiness | "Very happy" |
+| Decision Speed | "Very fast" |
+
+## VI. Time & Sequence Logic (Critical for Implementation)
+
+> **For Developers**: This section documents ALL time-based and sequence-based conditions that control which screens users see. Understanding this is essential before implementing any sequence.
+
+### VI.i State Determination Flow
+
+When a user logs in or returns to the app, the system must determine what to show them:
+
+```
+USER RETURNS
+    │
+    ▼
+┌───────────────────┐
+│ Is onboarded?     │───NO───► ONBOARDING SEQUENCE
+└────────┬──────────┘          (resume where left off)
+         │YES
+         ▼
+┌───────────────────────────┐
+│ Has EVER completed an     │───NO───► EVENING SEQUENCE
+│ evening sequence?         │          (first time, today)
+└────────┬──────────────────┘
+         │YES
+         ▼
+┌───────────────────────────┐
+│ What time is it in        │
+│ user's timezone?          │
+└────────┬──────────────────┘
+         │
+    ┌────┴────────────────────────┐
+    │                             │
+    ▼                             ▼
+MIDNIGHT–3AM                   3AM–REFLECTION TIME
+    │                             │
+    ▼                             ▼
+Yesterday's EVENING       Today's MORNING SEQUENCE
+(if not completed)             │
+                               ▼
+                    ┌──────────────────────┐
+                    │ Yesterday's evening  │
+                    │ completed?           │
+                    └────────┬─────────────┘
+                        YES  │  NO
+                          ┌──┴──┐
+                          │     │
+                          ▼     ▼
+                    Normal   Backfill yesterday
+                    flow     at v1-m-21
+                             
+    ▼
+AFTER REFLECTION TIME (user-defined, until 3am next day)
+    │
+    ▼
+Today's EVENING SEQUENCE
+```
+
+### VI.ii Time Rules Summary
+
+| Condition | Active Sequence | Notes |
+|-----------|-----------------|-------|
+| User not onboarded | Onboarding | Day-independent, tracked per user |
+| Onboarded but never did evening | Evening | Skip first morning entirely |
+| 3:00am – Reflection Time | Morning | Can only complete once per day |
+| Reflection Time – 2:59am next day | Evening | Can only complete once per day |
+| Midnight – 2:59am | Evening (YESTERDAY) | Night owl logic: counts as previous day |
+
+### VI.iii Sequence Completion Rules
+
+| Rule | Description |
+|------|-------------|
+| **Once per lifetime** | Onboarding can only be completed once ever |
+| **Once per day** | Morning and evening each complete once per calendar day |
+| **Resume exactly** | If user leaves mid-sequence, they resume at exact page |
+| **Path choices persist** | Branching decisions (yes/no) are saved and restored |
+| **Backfill yesterday only** | If yesterday's evening is empty, collect at v1-m-21. **Max 1 day back** — older days cannot be recovered and simply stay empty. (missed days) |
+| **Skip first morning** | After onboarding → evening (not morning) |
+
+### VI.iv Night Owl Logic (Midnight–3am)
+
+This is **critical** for correct behavior:
+
+```
+If current time is between 00:00 and 02:59 in user's timezone:
+  → Treat as "previous day" for evening sequence
+  → User sees YESTERDAY's evening sequence (if not completed)
+  → Data saves to YESTERDAY's daily_log
+```
+
+**Example**: User logs in at 1:30am on Tuesday
+- They see Monday's evening sequence
+- Their responses save to Monday's `daily_log`
+- Tuesday's morning sequence activates at 3:00am Tuesday
+
+### VI.v Progress Tracking Requirements
+
+For **Onboarding** (day-independent):
+- `sequence_progress.current_page_id` = current page
+- `sequence_progress.path_choices` = JSON of branching decisions
+- `sequence_progress.status` = `in_progress` or `completed`
+- `daily_log_id` = NULL (not tied to any day)
+
+For **Morning/Evening** (day-specific):
+- Same fields but linked to specific `daily_log_id`
+- `daily_logs` table has one row per user per day
+- `metric_responses` link to `daily_log_id` for that day's data
+
+### VI.vi Data That Must Be Collected
+
+**Onboarding** (once per user):
+- `user_name` (text)
+- `user_timezone` (text)  
+- `remembers_efd` (boolean) → creates branch
+- `last_efd_date` (date, if remembers_efd = true)
+
+**Morning** (daily):
+- `magic_task` (text)
+- `magic_task_completed` (boolean)
+- `evening_reflection_time` (time)
+
+**Evening** (daily):
+- `committed_tomorrow` (boolean) → creates branch
+- `taking_day_off` (boolean)
+- `return_date` (date, if taking day off)
+- `rating_positivity` (1-10)
+- `rating_confidence` (1-10)
+- `rating_overthinking` (1-10)
+- `rating_intuition` (1-10)
+- `rating_doubt` (1-10)
+- `rating_happiness` (1-10)
+- `rating_decision_speed` (1-10)
+
+---
+
+## VII. Testing Guide (For Developers)
+
+> **IMPORTANT**: During development, you need to test sequences freely without time restrictions.
+
+### VII.i Current Testing Approach (Manual)
+
+Since time-based routing is **not yet implemented**, you can currently:
+
+1. **Navigate directly to any page**: `http://localhost:3000/evening/1`
+2. **Test each page independently**: No routing logic blocks you
+3. **Verify database saves**: Check Supabase Dashboard after each action
+
+### VII.ii When Time Logic IS Implemented
+
+You'll need these workarounds:
+
+#### Option A: Database Override (Recommended)
+```sql
+-- Reset user to test onboarding again
+UPDATE user_profiles 
+SET onboarded = false 
+WHERE user_id = 'YOUR_USER_ID';
+
+-- Clear today's sequence progress
+DELETE FROM sequence_progress 
+WHERE user_id = 'YOUR_USER_ID' 
+AND daily_log_id = (
+  SELECT id FROM daily_logs 
+  WHERE user_id = 'YOUR_USER_ID' 
+  AND date = CURRENT_DATE
+);
+
+-- Clear today's daily log entirely
+DELETE FROM daily_logs 
+WHERE user_id = 'YOUR_USER_ID' 
+AND date = CURRENT_DATE;
+```
+
+#### Option B: Time Simulation (Future)
+Add environment variable for testing:
+```env
+# In .env.local (NEVER in production)
+NEXT_PUBLIC_DEV_TIME_OVERRIDE=2024-12-15T19:00:00
+```
+
+#### Option C: Direct URL Navigation
+During development, pages don't enforce routing. Access directly:
+- `/onboarding/1` through `/onboarding/12`
+- `/evening/1` through `/evening/14`
+- `/morning/1` through `/morning/22` (when built)
+
+### VII.iii Verification Queries
+
+**Check user state:**
+```sql
+SELECT 
+  up.name,
+  up.timezone,
+  up.onboarded,
+  up.created_at
+FROM user_profiles up
+WHERE up.user_id = auth.uid();
+```
+
+**Check sequence progress:**
+```sql
+SELECT 
+  sp.status,
+  sp.current_page_id,
+  sp.path_choices,
+  s.key as sequence_key,
+  dl.date
+FROM sequence_progress sp
+JOIN sequences s ON s.id = sp.sequence_id
+LEFT JOIN daily_logs dl ON dl.id = sp.daily_log_id
+WHERE sp.user_id = 'YOUR_USER_ID'
+ORDER BY sp.created_at DESC;
+```
+
+**Check evening responses for today:**
+```sql
+SELECT 
+  m.key as metric_key,
+  mr.value_int as rating,
+  mr.value_text,
+  mr.value_date,
+  mr.created_at
+FROM metric_responses mr
+JOIN metrics m ON m.id = mr.metric_id
+JOIN daily_logs dl ON dl.id = mr.daily_log_id
+WHERE dl.user_id = 'YOUR_USER_ID'
+AND dl.date = CURRENT_DATE
+AND m.sequence_key = 'evening'
+ORDER BY mr.created_at;
+```
+
+### VII.iv Testing Checklist Template
+
+Use this for each sequence page:
+
+```
+□ Page loads without errors
+□ UI matches design (black bg, white text, proper spacing)
+□ Primary action works (button click, form submit)
+□ Data saves to correct table (check Supabase)
+□ Navigation goes to correct next page
+□ Branching (if applicable) goes to correct path
+□ Help/error/stuck popup works
+□ Loading states show correctly
+□ Error states show correctly
+```
+
+---
+
+## IX. Architecture Principles
 
 ### Data vs. Pages Separation
 
@@ -262,7 +540,7 @@ Unauthenticated → /login (email + password)
 | User custom questions | Future: `user_custom_metrics` table |
 | Audio customization | Future: ElevenLabs integration + track library |
 
-## VII. Future Roadmap
+## X. Future Roadmap
 
 ### Phase A: Logging (Current)
 - ✅ Database schema for all sequences
@@ -286,7 +564,7 @@ Unauthenticated → /login (email + password)
 - In-app meetings (future)
 - AI-guided counseling with voice input
 
-## VIII. Admin Dashboard KPIs
+## XI. Admin Dashboard KPIs
 
 Track per UX version + date period:
 
@@ -400,6 +678,28 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2025-12-15: Time & Sequence Logic Documentation
+
+**Added comprehensive documentation for all time-based and sequence-based conditions.**
+
+| Section | Content |
+|---------|---------|
+| VI. Time & Sequence Logic | State determination flowchart, time rules, night owl logic, progress tracking |
+| VII. Testing Guide | SQL reset queries, verification queries, testing checklist template |
+
+**Also added missing implementation details:**
+- Evening rating scale labels (what shows under "10" for each rating)
+- Audio player requirements (80% unlock, lock screen support, user-specific audio)
+- Time picker prefill (previous day's reflection time)
+- Feature links placeholder behavior (coming soon + suggestion text field)
+- 1-day backfill limit (max 1 day back, older days unrecoverable)
+- Timezone prefill from browser's Intl API
+- v1-e-14 final page logic (shows "tomorrow" only if returning next day)
+
+This enables developers to understand the complete routing logic and test freely during development.
+
+---
 
 ### 2025-12-14: Auth System with Invite Code Validation
 
@@ -703,7 +1003,7 @@ npx supabase gen types typescript --linked > src/types/database.ts
 Priority order for implementation:
 
 1. ~~**Auth flow with invite codes**~~: ✅ Done
-2. ~~**Onboarding sequence**~~: ✅ Done — Pages v1-o-1 through v1-o-12 complete with branching
+2. ~~**Onboarding sequence**~~: ✅ Done — Pages v1-o-1 through v1-o-12 complete with branching (data logging tested, but leaving and entering again not tested.)
 3. **Morning sequence**: Pages v1-m-1 through v1-m-22
 4. **Evening sequence**: Pages v1-e-1 through v1-e-14
 5. **Progress persistence**: Save/restore position on page load
