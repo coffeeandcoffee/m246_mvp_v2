@@ -604,20 +604,21 @@ Track per UX version + date period:
 │   │   │   ├── auth
 │   │   │   │   └── actions.ts          # Server actions: signup, login, signout
 │   │   │   ├── dashboard               # Protected dashboard
+│   │   │   ├── evening                 # Evening sequence (placeholder)
 │   │   │   ├── login                   # Login page
-│   │   │   ├── onboarding              # Onboarding flow (pages 1-5)
-│   │   │   │   ├── 1/page.tsx          # "How can we call you?"
-│   │   │   │   ├── 2/page.tsx          # Timezone confirmation
-│   │   │   │   ├── 3/page.tsx          # EFD yes/no question
-│   │   │   │   ├── 4/page.tsx          # Date picker (placeholder)
-│   │   │   │   ├── 5/page.tsx          # EFD explanation (placeholder)
+│   │   │   ├── onboarding              # Onboarding flow (pages 1-12)
+│   │   │   │   ├── 1-12/page.tsx       # Individual page components
 │   │   │   │   ├── actions.ts          # Server actions for onboarding
 │   │   │   │   └── layout.tsx          # Shared layout with help popup
 │   │   │   ├── signup                  # Signup page with invite code
 │   │   │   ├── globals.css             # Design system + Tailwind
 │   │   │   └── layout.tsx              # Root layout
-│   │   ├── components                  # Reusable UI components
-│   │   ├── lib                         # Utility libraries
+│   │   ├── components
+│   │   │   ├── sequences               # Sequence-specific components
+│   │   │   └── ui                      # Reusable UI components
+│   │   ├── lib
+│   │   │   ├── hooks                   # Custom React hooks
+│   │   │   └── sequences               # Sequence utilities
 │   │   ├── types
 │   │   │   └── database.ts             # Generated Supabase types
 │   │   ├── utils/supabase              # Supabase client utilities
