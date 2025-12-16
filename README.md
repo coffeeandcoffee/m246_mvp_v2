@@ -601,12 +601,14 @@ Track per UX version + date period:
 │   │   ├── app
 │   │   │   ├── (app)                   # Grouped routes for sequences
 │   │   │   ├── api                     # API routes
-│   │   │   ├── auth
-│   │   │   │   └── actions.ts          # Server actions: signup, login, signout
+│   │   │   ├── auth                    # Auth actions (signup, login, signout)
 │   │   │   ├── dashboard               # Protected dashboard
-│   │   │   ├── evening                 # Evening sequence (placeholder)
+│   │   │   ├── evening                 # Evening sequence (14 pages)
+│   │   │   │   ├── 1-14/page.tsx       # Individual page components
+│   │   │   │   ├── actions.ts          # Server actions for evening
+│   │   │   │   └── layout.tsx          # Shared layout with help popup
 │   │   │   ├── login                   # Login page
-│   │   │   ├── onboarding              # Onboarding flow (pages 1-12)
+│   │   │   ├── onboarding              # Onboarding flow (12 pages)
 │   │   │   │   ├── 1-12/page.tsx       # Individual page components
 │   │   │   │   ├── actions.ts          # Server actions for onboarding
 │   │   │   │   └── layout.tsx          # Shared layout with help popup
@@ -679,6 +681,91 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2025-12-16: Evening Sequence Complete
+
+**All 14 evening pages implemented with data collection and branching.**
+
+**Next Steps (in order):**
+1. End-to-end test: signup → onboarding → evening → done
+2. Morning sequence (22 pages with audio player)
+3. Progress persistence (save/restore position)
+
+#### Files Created:
+
+| File | Purpose |
+|------|---------|
+| `evening/layout.tsx` | Shared layout with help/error/stuck popup |
+| `evening/actions.ts` | Server actions: saveCommitmentResponse, saveReturnDate, saveRating |
+| `evening/1/page.tsx` | Intro page |
+| `evening/2/page.tsx` | Commit/Day off branching |
+| `evening/3/page.tsx` | Day off acknowledgment |
+| `evening/4/page.tsx` | When will you return? (Day after tomorrow / Later) |
+| `evening/5/page.tsx` | Date picker for return date |
+| `evening/6/page.tsx` | Commit to return confirmation |
+| `evening/7-13/page.tsx` | 7 rating pages (positivity, confidence, overthinking, intuition, doubt, happiness, decision_speed) |
+| `evening/14/page.tsx` | Final page with personalized name + return date |
+
+#### Evening Flow Paths:
+
+```
+Page 1 → Page 2 [Commit?]
+                  │
+        ┌─────────┴─────────┐
+        ▼                   ▼
+    [Commit]            [Day off]
+        │                   │
+        │               Page 3 → Page 4 [When return?]
+        │                             │
+        │                   ┌─────────┴─────────┐
+        │                   ▼                   ▼
+        │            [Day after tmrw]       [Later]
+        │                   │                   │
+        │                   │               Page 5 (date picker)
+        │                   │                   │
+        │                   └─────────┬─────────┘
+        │                             ▼
+        │                         Page 6 (confirm return)
+        │                             │
+        └─────────────────────────────┤
+                                      ▼
+                            Pages 7-13 (ratings)
+                                      │
+                                      ▼
+                                  Page 14 (done)
+```
+
+#### Data Collected:
+
+| Metric Key | Type | Page |
+|------------|------|------|
+| `committed_tomorrow` | text (true/false) | 2 |
+| `taking_day_off` | text (true) | 2 |
+| `return_date` | date | 4 or 5 |
+| `rating_positivity` | int 1-10 | 7 |
+| `rating_confidence` | int 1-10 | 8 |
+| `rating_overthinking` | int 1-10 | 9 |
+| `rating_intuition` | int 1-10 | 10 |
+| `rating_doubt` | int 1-10 | 11 |
+| `rating_happiness` | int 1-10 | 12 |
+| `rating_decision_speed` | int 1-10 | 13 |
+
+#### Verification Query:
+
+```sql
+SELECT 
+    m.key as metric_key,
+    COALESCE(mr.value_text, mr.value_int::text, mr.value_date::text) as value,
+    mr.created_at
+FROM metric_responses mr
+JOIN metrics m ON m.id = mr.metric_id
+WHERE m.key LIKE 'rating_%' 
+   OR m.key IN ('committed_tomorrow', 'taking_day_off', 'return_date')
+ORDER BY mr.created_at DESC
+LIMIT 15;
+```
+
+---
 
 ### 2025-12-16: Redirect Logic Observation
 
@@ -1015,12 +1102,11 @@ npx supabase gen types typescript --linked > src/types/database.ts
 Priority order for implementation:
 
 1. ~~**Auth flow with invite codes**~~: ✅ Done
-2. ~~**Onboarding sequence**~~: ✅ Done — Pages v1-o-1 through v1-o-12 complete with branching (data logging tested, but leaving and entering again not tested.)
+2. ~~**Onboarding sequence**~~: ✅ Done — Pages v1-o-1 through v1-o-12 complete with branching
 3. **Morning sequence**: Pages v1-m-1 through v1-m-22
-4. **Evening sequence**: Pages v1-e-1 through v1-e-14
+4. ~~**Evening sequence**~~: ✅ Done — Pages v1-e-1 through v1-e-14 complete with branching and all 7 ratings
 5. **Progress persistence**: Save/restore position on page load
 6. **Audio player**: Integrate with Storage bucket
 7. **Admin dashboard**: Analytics queries on `page_events`
 
 See `app/supabase/migrations/00004_create_metrics.sql` for full list of data points to collect.
-
