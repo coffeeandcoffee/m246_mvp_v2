@@ -615,6 +615,10 @@ Track per UX version + date period:
 │   │   │   │   ├── actions.ts          # Server actions for evening
 │   │   │   │   └── layout.tsx          # Shared layout with help popup
 │   │   │   ├── login                   # Login page
+│   │   │   ├── morning                 # Morning sequence (22 pages)
+│   │   │   │   ├── 1-22/page.tsx       # Individual page components
+│   │   │   │   ├── actions.ts          # Server actions for morning
+│   │   │   │   └── layout.tsx          # Shared layout with help popup
 │   │   │   ├── onboarding              # Onboarding flow (12 pages)
 │   │   │   │   ├── 1-12/page.tsx       # Individual page components
 │   │   │   │   ├── actions.ts          # Server actions for onboarding
@@ -689,6 +693,37 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-16: Morning Sequence Phases 1 & 2 Complete
+
+**Validated (hard facts):**
+- ✅ Pages 1-14 navigate correctly with consistent UI
+- ✅ Page 1 displays personalized user name from DB
+- ✅ Page 2 checkbox commitment requires check before proceeding
+- ✅ Page 12 audio player loads from Supabase Storage via signed URLs
+- ✅ Audio plays with progress bar and time display
+- ✅ Next button unlocks after 80% of audio duration (time-based, not playback-based)
+- ✅ Help/error/stuck popup works on all pages
+
+**Files created:**
+| File | Purpose |
+|------|---------|
+| `morning/layout.tsx` | Shared layout with help popup |
+| `morning/actions.ts` | Server actions (placeholder for Phase 3) |
+| `morning/1-14/page.tsx` | 14 page components |
+
+**RLS Policy added for default audio:**
+```sql
+CREATE POLICY "Allow read default audio"
+ON storage.objects FOR SELECT TO authenticated
+USING (bucket_id = 'audio' AND (storage.foldername(name))[1] = 'default');
+```
+
+**Next:**
+- Phase 3 (pages 15-17 with magic_task data saving)
+- Validating audio played, and magic task and so on are logged into DB via straightforward SQL queries
+
+---
+
 ### 2025-12-16: E2E Test Complete
 
 **Validated (hard facts):**
@@ -705,8 +740,9 @@ npx pm2 restart mvp2
 
 **Next Steps (in order):**
 1. ~~End-to-end test~~ ✅ Complete
-2. Morning sequence (22 pages with audio player)
-3. Progress persistence + daily_logs creation
+2. ~~Morning sequence pages 1-14~~ ✅ Complete
+3. Morning sequence pages 15-22 (data saving)
+4. Progress persistence + daily_logs creation
 
 ---
 
