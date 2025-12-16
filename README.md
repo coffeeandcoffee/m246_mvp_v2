@@ -458,39 +458,46 @@ SELECT
   up.onboarded,
   up.created_at
 FROM user_profiles up
-WHERE up.user_id = auth.uid();
+WHERE up.user_id = 'YOUR_USER_ID';
 ```
 
-**Check sequence progress:**
+**Check all evening ratings:**
 ```sql
 SELECT 
-  sp.status,
-  sp.current_page_id,
-  sp.path_choices,
-  s.key as sequence_key,
-  dl.date
-FROM sequence_progress sp
-JOIN sequences s ON s.id = sp.sequence_id
-LEFT JOIN daily_logs dl ON dl.id = sp.daily_log_id
-WHERE sp.user_id = 'YOUR_USER_ID'
-ORDER BY sp.created_at DESC;
-```
-
-**Check evening responses for today:**
-```sql
-SELECT 
-  m.key as metric_key,
-  mr.value_int as rating,
-  mr.value_text,
-  mr.value_date,
-  mr.created_at
+    m.key as metric_key,
+    mr.value_int as rating,
+    mr.created_at
 FROM metric_responses mr
 JOIN metrics m ON m.id = mr.metric_id
-JOIN daily_logs dl ON dl.id = mr.daily_log_id
-WHERE dl.user_id = 'YOUR_USER_ID'
-AND dl.date = CURRENT_DATE
-AND m.sequence_key = 'evening'
-ORDER BY mr.created_at;
+WHERE m.key LIKE 'rating_%'
+ORDER BY mr.created_at DESC
+LIMIT 10;
+```
+
+**Check commitment and day off:**
+```sql
+SELECT 
+    m.key as metric_key,
+    mr.value_text,
+    mr.created_at
+FROM metric_responses mr
+JOIN metrics m ON m.id = mr.metric_id
+WHERE m.key IN ('committed_tomorrow', 'taking_day_off')
+ORDER BY mr.created_at DESC
+LIMIT 5;
+```
+
+**Check return date:**
+```sql
+SELECT 
+    m.key as metric_key,
+    mr.value_date,
+    mr.created_at
+FROM metric_responses mr
+JOIN metrics m ON m.id = mr.metric_id
+WHERE m.key = 'return_date'
+ORDER BY mr.created_at DESC
+LIMIT 3;
 ```
 
 ### VII.iv Testing Checklist Template
@@ -682,14 +689,30 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-16: E2E Test Complete
+
+**Validated (hard facts):**
+- ✅ Signup → Onboarding → Evening → Dashboard flow works end-to-end
+- ✅ All 12 onboarding metrics save correctly with user_id link
+- ✅ All 10 evening metrics save correctly with user_id link
+- ✅ Branching logic works (day off vs commit paths)
+- ✅ Page 14 displays correct user name and return date from DB
+
+**Not yet implemented:**
+- ❌ `daily_logs` table not populated (all metrics save with `daily_log_id = NULL`)
+- ❌ No session resume (user always starts from page 1)
+- ❌ No time-based routing (morning vs evening detection)
+
+**Next Steps (in order):**
+1. ~~End-to-end test~~ ✅ Complete
+2. Morning sequence (22 pages with audio player)
+3. Progress persistence + daily_logs creation
+
+---
+
 ### 2025-12-16: Evening Sequence Complete
 
 **All 14 evening pages implemented with data collection and branching.**
-
-**Next Steps (in order):**
-1. End-to-end test: signup → onboarding → evening → done
-2. Morning sequence (22 pages with audio player)
-3. Progress persistence (save/restore position)
 
 #### Files Created:
 

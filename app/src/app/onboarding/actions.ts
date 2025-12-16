@@ -186,5 +186,5 @@ export async function finishOnboarding() {
     }
 
     // Redirect to evening sequence
-    redirect('/evening')
+    redirect('/evening/1')
 }
