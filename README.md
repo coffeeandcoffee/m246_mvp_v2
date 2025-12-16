@@ -680,6 +680,17 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-16: Redirect Logic Observation
+
+**Observed**: Login redirects to dashboard, not back to onboarding step where user left off.
+
+Redirect logic is not yet set up. Will implement after all sequences (onboarding, morning, evening) are built with proper data collection and routing. Implementation order:
+1. Build all sequences with data collection
+2. Add redirect/resume logic (one level up)
+3. Add time-of-day logic and rules (another level up)
+
+---
+
 ### 2025-12-15: Time & Sequence Logic Documentation
 
 **Added comprehensive documentation for all time-based and sequence-based conditions.**
