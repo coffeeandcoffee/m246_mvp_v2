@@ -6,16 +6,44 @@
  * - Return date → metric_responses via RPC
  * - Ratings (1-10) → metric_responses via RPC
  * 
- * KEY DIFFERENCE FROM ONBOARDING:
- * - Evening data is day-specific, so we need a daily_log_id
- * - For now (Step 1), we'll pass NULL to keep it simple like onboarding
- * - Later we'll add proper daily_log creation
+ * All evening data is linked to a daily_log for that day.
+ * Night owl logic: 00:00-02:59 counts as previous day.
  */
 
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
+
+// ============================================================================
+// HELPER: Get today's daily_log_id (with night owl logic)
+// ============================================================================
+
+async function getDailyLogId(supabase: SupabaseClient, userId: string): Promise<string | null> {
+    const now = new Date()
+    const hour = now.getHours()
+
+    // Night owl logic: 00:00-02:59 counts as previous day's evening
+    let logDate = new Date()
+    if (hour < 3) {
+        logDate.setDate(logDate.getDate() - 1)
+    }
+
+    const dateStr = logDate.toISOString().split('T')[0]  // YYYY-MM-DD
+
+    const { data, error } = await supabase.rpc('get_or_create_daily_log', {
+        p_user_id: userId,
+        p_date: dateStr
+    })
+
+    if (error) {
+        console.error('Failed to get/create daily log:', error)
+        return null
+    }
+
+    return data
+}
 
 // ============================================================================
 // SAVE COMMITMENT RESPONSE (v1-e-2)
@@ -37,11 +65,14 @@ export async function saveCommitmentResponse(formData: FormData) {
         return { error: 'Not authenticated' }
     }
 
+    // Get today's daily_log_id
+    const dailyLogId = await getDailyLogId(supabase, user.id)
+
     // Save committed_tomorrow as boolean text ('true' or 'false')
     const { error: rpcError1 } = await supabase.rpc('save_metric_response', {
         p_user_id: user.id,
         p_metric_key: 'committed_tomorrow',
-        p_daily_log_id: null,  // We'll add proper daily_log later
+        p_daily_log_id: dailyLogId,
         p_value_text: choice === 'commit' ? 'true' : 'false',
         p_value_int: null,
         p_value_date: null,
@@ -59,7 +90,7 @@ export async function saveCommitmentResponse(formData: FormData) {
         const { error: rpcError2 } = await supabase.rpc('save_metric_response', {
             p_user_id: user.id,
             p_metric_key: 'taking_day_off',
-            p_daily_log_id: null,
+            p_daily_log_id: dailyLogId,
             p_value_text: 'true',
             p_value_int: null,
             p_value_date: null,
@@ -95,10 +126,13 @@ export async function saveReturnDate(formData: FormData) {
         return { error: 'Not authenticated' }
     }
 
+    // Get today's daily_log_id
+    const dailyLogId = await getDailyLogId(supabase, user.id)
+
     const { error: rpcError } = await supabase.rpc('save_metric_response', {
         p_user_id: user.id,
         p_metric_key: 'return_date',
-        p_daily_log_id: null,
+        p_daily_log_id: dailyLogId,
         p_value_text: null,
         p_value_int: null,
         p_value_date: dateValue,
@@ -140,10 +174,13 @@ export async function saveRating(formData: FormData) {
         return { error: 'Not authenticated' }
     }
 
+    // Get today's daily_log_id
+    const dailyLogId = await getDailyLogId(supabase, user.id)
+
     const { error: rpcError } = await supabase.rpc('save_metric_response', {
         p_user_id: user.id,
         p_metric_key: metricKey,
-        p_daily_log_id: null,
+        p_daily_log_id: dailyLogId,
         p_value_text: null,
         p_value_int: ratingInt,
         p_value_date: null,

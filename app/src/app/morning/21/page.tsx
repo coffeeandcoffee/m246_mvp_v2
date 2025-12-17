@@ -1,39 +1,94 @@
 /**
  * MORNING PAGE 21 (v1-m-21)
  * 
- * Backfill page - only shown if yesterday's evening was missed
- * "We missed yesterday's reflection" → quick rating collection
+ * Backfill decision page - checks if yesterday's evening was missed
+ * - If yesterday's evening data exists → redirect to page 22
+ * - If yesterday's evening data is empty → redirect to backfill sequence
+ * - If it's the first day (onboarding day) → skip backfill, go to page 22
  * 
- * TODO: Implement backfill logic
- * For now, this is a placeholder that just redirects to page 22
- * 
- * Next → page 22
+ * This is a SERVER COMPONENT that checks the database before rendering
  */
 
-'use client'
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
 
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+// Check if yesterday has any evening ratings
+async function hasYesterdayEveningData(userId: string): Promise<boolean> {
+    const supabase = await createClient()
 
-export default function MorningPage21() {
-    const router = useRouter()
+    // Get yesterday's date
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yesterdayStr = yesterday.toISOString().split('T')[0]
 
-    // TODO: Check if yesterday's evening is empty
-    // If not empty, skip to page 22
-    // For now, always skip
-    useEffect(() => {
-        router.push('/morning/22')
-    }, [router])
+    // Check if daily_log exists for yesterday with any evening rating
+    const { data, error } = await supabase
+        .from('daily_logs')
+        .select(`
+            id,
+            metric_responses!inner(
+                id,
+                metrics!inner(key)
+            )
+        `)
+        .eq('user_id', userId)
+        .eq('log_date', yesterdayStr)
+        .like('metric_responses.metrics.key', 'rating_%')
+        .limit(1)
 
-    return (
-        <div className="w-full max-w-md text-center">
-            {/* Page counter */}
-            <p className="text-gray-600 text-sm mb-16">21 / 22</p>
+    if (error) {
+        console.error('Error checking yesterday data:', error)
+        // On error, skip backfill to avoid blocking user
+        return true
+    }
 
-            {/* Loading state while redirecting */}
-            <h1 className="text-xl font-medium text-white mb-8">
-                Checking yesterday's data...
-            </h1>
-        </div>
-    )
+    return data && data.length > 0
+}
+
+// Check if this is the user's first day (onboarding day)
+async function isOnboardingDay(userId: string): Promise<boolean> {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+        .from('user_profiles')
+        .select('created_at')
+        .eq('user_id', userId)
+        .single()
+
+    if (error || !data) {
+        return false
+    }
+
+    // Check if user was created today
+    const createdDate = new Date(data.created_at).toISOString().split('T')[0]
+    const todayDate = new Date().toISOString().split('T')[0]
+
+    return createdDate === todayDate
+}
+
+export default async function MorningPage21() {
+    const supabase = await createClient()
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+        redirect('/login')
+    }
+
+    // Check if it's onboarding day (first day) - skip backfill
+    const isFirstDay = await isOnboardingDay(user.id)
+    if (isFirstDay) {
+        redirect('/morning/22')
+    }
+
+    // Check if yesterday has evening data
+    const hasYesterdayData = await hasYesterdayEveningData(user.id)
+
+    if (hasYesterdayData) {
+        // Yesterday's data exists, proceed to final page
+        redirect('/morning/22')
+    } else {
+        // Yesterday's data missing, go to backfill sequence
+        redirect('/morning/backfill/1')
+    }
 }

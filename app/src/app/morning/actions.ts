@@ -7,13 +7,44 @@
  * - Evening reflection time → metric_responses via RPC
  * - Feature suggestions → feature_suggestions table
  * 
- * Pattern follows evening/actions.ts
+ * All morning data is linked to a daily_log for that day.
+ * Night owl logic: 00:00-02:59 counts as previous day.
  */
 
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
+
+// ============================================================================
+// HELPER: Get today's daily_log_id (with night owl logic)
+// ============================================================================
+
+async function getDailyLogId(supabase: SupabaseClient, userId: string): Promise<string | null> {
+    const now = new Date()
+    const hour = now.getHours()
+
+    // Night owl logic: 00:00-02:59 counts as previous day
+    let logDate = new Date()
+    if (hour < 3) {
+        logDate.setDate(logDate.getDate() - 1)
+    }
+
+    const dateStr = logDate.toISOString().split('T')[0]  // YYYY-MM-DD
+
+    const { data, error } = await supabase.rpc('get_or_create_daily_log', {
+        p_user_id: userId,
+        p_date: dateStr
+    })
+
+    if (error) {
+        console.error('Failed to get/create daily log:', error)
+        return null
+    }
+
+    return data
+}
 
 // ============================================================================
 // SAVE MAGIC TASK (v1-m-16)
@@ -34,10 +65,13 @@ export async function saveMagicTask(formData: FormData) {
         return { error: 'Not authenticated' }
     }
 
+    // Get today's daily_log_id
+    const dailyLogId = await getDailyLogId(supabase, user.id)
+
     const { error: rpcError } = await supabase.rpc('save_metric_response', {
         p_user_id: user.id,
         p_metric_key: 'magic_task',
-        p_daily_log_id: null,  // We'll add proper daily_log later
+        p_daily_log_id: dailyLogId,
         p_value_text: task.trim(),
         p_value_int: null,
         p_value_date: null,
@@ -100,10 +134,13 @@ export async function completeMagicTask() {
         return { error: 'Not authenticated' }
     }
 
+    // Get today's daily_log_id
+    const dailyLogId = await getDailyLogId(supabase, user.id)
+
     const { error: rpcError } = await supabase.rpc('save_metric_response', {
         p_user_id: user.id,
         p_metric_key: 'magic_task_completed',
-        p_daily_log_id: null,
+        p_daily_log_id: dailyLogId,
         p_value_text: 'true',
         p_value_int: null,
         p_value_date: null,
@@ -138,10 +175,13 @@ export async function saveReflectionTime(formData: FormData) {
         return { error: 'Not authenticated' }
     }
 
+    // Get today's daily_log_id
+    const dailyLogId = await getDailyLogId(supabase, user.id)
+
     const { error: rpcError } = await supabase.rpc('save_metric_response', {
         p_user_id: user.id,
         p_metric_key: 'evening_reflection_time',
-        p_daily_log_id: null,
+        p_daily_log_id: dailyLogId,
         p_value_text: null,
         p_value_int: null,
         p_value_date: null,

@@ -4,9 +4,8 @@
  * Handle saving user data during backfill (yesterday's missed evening reflection).
  * 
  * KEY DIFFERENCE FROM EVENING ACTIONS:
- * - This collects data for YESTERDAY (missed evening)
- * - For now, we use NULL daily_log_id (same as evening)
- * - Later, we'll add proper date-specific daily_log linking
+ * - Backfill ALWAYS saves to YESTERDAY's daily_log
+ * - This is used when morning sequence detects yesterday's evening was missed
  * 
  * FLOW: Only ratings (7 pages) - no commitment/day-off branching
  */
@@ -14,7 +13,32 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
+
+// ============================================================================
+// HELPER: Get YESTERDAY's daily_log_id (for backfill)
+// ============================================================================
+
+async function getYesterdayDailyLogId(supabase: SupabaseClient, userId: string): Promise<string | null> {
+    // Always use yesterday's date for backfill
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    const dateStr = yesterday.toISOString().split('T')[0]  // YYYY-MM-DD
+
+    const { data, error } = await supabase.rpc('get_or_create_daily_log', {
+        p_user_id: userId,
+        p_date: dateStr
+    })
+
+    if (error) {
+        console.error('Failed to get/create yesterday daily log:', error)
+        return null
+    }
+
+    return data
+}
 
 // ============================================================================
 // SAVE BACKFILL RATING (pages 2-8)
@@ -42,13 +66,13 @@ export async function saveBackfillRating(formData: FormData) {
         return { error: 'Not authenticated' }
     }
 
-    // Save the rating
-    // NOTE: Using NULL for daily_log_id for now (same as evening sequence)
-    // Later we'll add proper yesterday's daily_log linking
+    // Get YESTERDAY's daily_log_id (this is backfill!)
+    const dailyLogId = await getYesterdayDailyLogId(supabase, user.id)
+
     const { error: rpcError } = await supabase.rpc('save_metric_response', {
         p_user_id: user.id,
         p_metric_key: metricKey,
-        p_daily_log_id: null,
+        p_daily_log_id: dailyLogId,
         p_value_text: null,
         p_value_int: ratingInt,
         p_value_date: null,
@@ -63,3 +87,4 @@ export async function saveBackfillRating(formData: FormData) {
 
     redirect(nextPage)
 }
+

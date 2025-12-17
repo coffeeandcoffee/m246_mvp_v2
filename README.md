@@ -675,6 +675,21 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-17: Daily Logs & Backfill Trigger ✅
+
+**Metrics now save with `daily_log_id` for date-specific data.**
+
+- `evening/actions.ts` - Added `getDailyLogId()` with night owl logic
+- `morning/actions.ts` - Same pattern, all metrics linked to daily_log
+- `morning/backfill/actions.ts` - Uses `getYesterdayDailyLogId()` for backfill
+- `morning/21/page.tsx` - Server component: routes to backfill if yesterday empty, skips on first day
+
+**Next Steps:**
+1. Progress persistence (exact page visited log per page) + session resume (next day resets to start with morning sequence again though; so basically if dailys page visit log or how it is called has no visited pages yet)
+2. Time-based routing (morning vs evening detection)
+
+---
+
 ### 2025-12-17: Backfill Evening Sequence ✅
 
 **9-page backfill sequence for missed yesterday's evening data.**
@@ -689,11 +704,6 @@ npx pm2 restart mvp2
 - `morning/backfill/layout.tsx` - Shared layout
 - `morning/backfill/actions.ts` - `saveBackfillRating()` function
 - `morning/backfill/1-9/page.tsx` - All 9 pages
-
-**Next Steps:**
-1. Trigger logic in `/morning/21` (check if yesterday empty)
-2. Daily_logs implementation (proper date-specific saving)
-3. Progress persistence + session resume
 
 ---
 
@@ -731,17 +741,19 @@ npx pm2 restart mvp2
 - ✅ All 10 evening metrics save correctly with user_id link
 - ✅ Branching logic works (day off vs commit paths)
 - ✅ Page 14 displays correct user name and return date from DB
+- ✅ `daily_logs` table populated correctly with date-specific data
 
 **Not yet implemented:**
-- ❌ `daily_logs` table not populated (all metrics save with `daily_log_id = NULL`)
 - ❌ No session resume (user always starts from page 1)
 - ❌ No time-based routing (morning vs evening detection)
 
 **Next Steps (in order):**
 1. ~~End-to-end test~~ ✅ Complete
 2. ~~Morning sequence pages 1-14~~ ✅ Complete
-3. Morning sequence pages 15-22 (data saving)
-4. Progress persistence + daily_logs creation
+3. ~~Morning sequence pages 15-22 (data saving)~~ ✅ Complete
+4. ~~Daily_logs creation + backfill trigger~~ ✅ Complete
+5. Progress persistence + session resume
+6. Time-based routing
 
 ---
 
