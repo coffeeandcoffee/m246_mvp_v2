@@ -10,12 +10,17 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { logPageVisit } from '../actions'
 
 export default function MorningPage2() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [checked, setChecked] = useState(false)
+
+    useEffect(() => {
+        logPageVisit('v1-m-2')
+    }, [])
 
     function handleCommit() {
         setLoading(true)

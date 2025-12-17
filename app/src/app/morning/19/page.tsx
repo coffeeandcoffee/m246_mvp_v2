@@ -11,7 +11,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { saveReflectionTime, getPreviousReflectionTime } from '../actions'
+import { saveReflectionTime, getPreviousReflectionTime, logPageVisit } from '../actions'
 
 export default function MorningPage19() {
     const [time, setTime] = useState('18:00')
@@ -21,6 +21,8 @@ export default function MorningPage19() {
 
     // Prefill with previous time if available
     useEffect(() => {
+        logPageVisit('v1-m-19')
+
         async function fetchPreviousTime() {
             const previousTime = await getPreviousReflectionTime()
             if (previousTime) {

@@ -11,13 +11,17 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { saveReturnDate } from '../actions'
+import { useState, useEffect } from 'react'
+import { saveReturnDate, logPageVisit } from '../actions'
 
 export default function EveningPage4() {
     const router = useRouter()
     const [loading, setLoading] = useState<'tomorrow' | 'later' | null>(null)
     const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        logPageVisit('v1-e-4')
+    }, [])
 
     async function handleChoice(choice: 'tomorrow' | 'later') {
         setLoading(choice)

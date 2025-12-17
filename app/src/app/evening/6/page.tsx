@@ -13,6 +13,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { logPageVisit } from '../actions'
 
 export default function EveningPage6() {
     const router = useRouter()
@@ -21,6 +22,8 @@ export default function EveningPage6() {
     const [formattedDate, setFormattedDate] = useState('')
 
     useEffect(() => {
+        logPageVisit('v1-e-6')
+
         // Get return date from sessionStorage
         const stored = sessionStorage.getItem('returnDate')
         if (stored) {

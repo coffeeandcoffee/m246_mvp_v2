@@ -10,11 +10,16 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { logPageVisit } from '../actions'
 
 export default function MorningPage14() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        logPageVisit('v1-m-14')
+    }, [])
 
     function handleContinue() {
         setLoading(true)

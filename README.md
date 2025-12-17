@@ -675,6 +675,34 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-17: Page Visit Logging ✅
+
+**All sequences now log page visits for progress tracking and session resume.**
+
+Added `logPageVisit(pageKey)` server action to each sequence with deduplication (once per page per day):
+
+| Sequence | Pages | Page Keys |
+|----------|-------|-----------|
+| Morning | 1-22 | `v1-m-1` to `v1-m-22` |
+| Evening | 1-13 | `v1-e-1` to `v1-e-13` |
+| Backfill | 1-9 | `v1-bf-1` to `v1-bf-9` |
+
+**Files modified:**
+- `morning/actions.ts` - Added `logPageVisit()` with deduplication
+- `evening/actions.ts` - Same pattern
+- `morning/backfill/actions.ts` - Same pattern  
+- All page components - Added `useEffect(() => logPageVisit('page-key'), [])`
+
+**Next Steps:**
+1. **Resume Logic** (questions to resolve):
+   - What single entrypoint triggering re-entry makes most sense for the sake of simplicity/consistency/robustness? (Time-based router? `/morning` entry point?)
+   - Is "last page visited today" sufficient, or do we need to handle branches specially?
+   - Exceptions: What about server-redirect pages (morning/21, evening/14)? Final pages that should NOT resume?
+   - Keep simple: Just redirect to last `page_key` logged for today's `daily_log_id`?
+   - how do we test time based routing etc. all other rules efficiently without waiting a whole day? like in one session?
+
+---
+
 ### 2025-12-17: Daily Logs & Backfill Trigger ✅
 
 **Metrics now save with `daily_log_id` for date-specific data.**
@@ -685,8 +713,9 @@ npx pm2 restart mvp2
 - `morning/21/page.tsx` - Server component: routes to backfill if yesterday empty, skips on first day
 
 **Next Steps:**
-1. Progress persistence (exact page visited log per page) + session resume (next day resets to start with morning sequence again though; so basically if dailys page visit log or how it is called has no visited pages yet)
-2. Time-based routing (morning vs evening detection)
+1. ~~Progress persistence~~ ✅ Page visit logging complete
+2. Resume logic (redirect to last page)
+3. Time-based routing (morning vs evening detection)
 
 ---
 

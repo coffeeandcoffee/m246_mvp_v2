@@ -9,9 +9,17 @@
  * Next → page 2 (first rating: positivity)
  */
 
+'use client'
+
 import Link from 'next/link'
+import { useEffect } from 'react'
+import { logPageVisit } from '../actions'
 
 export default function BackfillPage1() {
+    useEffect(() => {
+        logPageVisit('v1-bf-1')
+    }, [])
+
     return (
         <div className="w-full max-w-md text-center">
             {/* Page counter */}
@@ -33,3 +41,4 @@ export default function BackfillPage1() {
         </div>
     )
 }
+

@@ -11,7 +11,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getMagicTask, completeMagicTask } from '../actions'
+import { getMagicTask, completeMagicTask, logPageVisit } from '../actions'
 
 export default function MorningPage17() {
     const [task, setTask] = useState<string | null>(null)
@@ -21,6 +21,8 @@ export default function MorningPage17() {
 
     // Fetch the magic task on mount
     useEffect(() => {
+        logPageVisit('v1-m-17')
+
         async function fetchTask() {
             const result = await getMagicTask()
             if (result.error) {

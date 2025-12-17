@@ -12,12 +12,16 @@
 
 'use client'
 
-import { saveCommitmentResponse } from '../actions'
-import { useState } from 'react'
+import { saveCommitmentResponse, logPageVisit } from '../actions'
+import { useState, useEffect } from 'react'
 
 export default function EveningPage2() {
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState<'commit' | 'dayoff' | null>(null)
+
+    useEffect(() => {
+        logPageVisit('v1-e-2')
+    }, [])
 
     async function handleChoice(choice: 'commit' | 'dayoff') {
         setLoading(choice)

@@ -9,13 +9,17 @@
 
 'use client'
 
-import { useState } from 'react'
-import { saveMagicTask } from '../actions'
+import { useState, useEffect } from 'react'
+import { saveMagicTask, logPageVisit } from '../actions'
 
 export default function MorningPage16() {
     const [task, setTask] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        logPageVisit('v1-m-16')
+    }, [])
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()

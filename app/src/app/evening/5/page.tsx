@@ -10,7 +10,8 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { logPageVisit } from '../actions'
 
 export default function EveningPage5() {
     const [selectedDate, setSelectedDate] = useState('')
@@ -21,6 +22,10 @@ export default function EveningPage5() {
     const minDate = new Date()
     minDate.setDate(minDate.getDate() + 2)
     const minDateStr = minDate.toISOString().split('T')[0]
+
+    useEffect(() => {
+        logPageVisit('v1-e-5')
+    }, [])
 
     async function handleSubmit() {
         if (!selectedDate) {

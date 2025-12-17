@@ -8,9 +8,17 @@
  * Done → /morning/22
  */
 
+'use client'
+
 import Link from 'next/link'
+import { useEffect } from 'react'
+import { logPageVisit } from '../actions'
 
 export default function BackfillPage9() {
+    useEffect(() => {
+        logPageVisit('v1-bf-9')
+    }, [])
+
     return (
         <div className="w-full max-w-md text-center">
             {/* Page counter */}
@@ -49,3 +57,4 @@ export default function BackfillPage9() {
         </div>
     )
 }
+

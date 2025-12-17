@@ -20,6 +20,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { logPageVisit } from '../actions'
 
 export default function MorningPage12() {
     const router = useRouter()
@@ -39,6 +40,9 @@ export default function MorningPage12() {
 
     // Fetch audio URL on mount
     useEffect(() => {
+        // Log page visit for progress tracking
+        logPageVisit('v1-m-12')
+
         async function fetchAudio() {
             try {
                 const supabase = createClient()

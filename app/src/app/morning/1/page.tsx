@@ -12,6 +12,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { logPageVisit } from '../actions'
 
 export default function MorningPage1() {
     const router = useRouter()
@@ -19,6 +20,9 @@ export default function MorningPage1() {
     const [userName, setUserName] = useState<string>('')
 
     useEffect(() => {
+        // Log this page visit for progress tracking
+        logPageVisit('v1-m-1')
+
         async function fetchUserName() {
             const supabase = createClient()
             const { data: { user } } = await supabase.auth.getUser()

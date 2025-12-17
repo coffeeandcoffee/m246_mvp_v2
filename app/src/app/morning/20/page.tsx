@@ -12,7 +12,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { getPreviousReflectionTime } from '../actions'
+import { getPreviousReflectionTime, logPageVisit } from '../actions'
 
 export default function MorningPage20() {
     const router = useRouter()
@@ -21,6 +21,8 @@ export default function MorningPage20() {
 
     // Fetch the time user just set
     useEffect(() => {
+        logPageVisit('v1-m-20')
+
         async function fetchTime() {
             const time = await getPreviousReflectionTime()
             if (time) {

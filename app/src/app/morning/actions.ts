@@ -47,6 +47,46 @@ async function getDailyLogId(supabase: SupabaseClient, userId: string): Promise<
 }
 
 // ============================================================================
+// LOG PAGE VISIT - Tracks which pages user has visited (for resume functionality)
+// Only logs ONCE per page per day (prevents React StrictMode double-logging)
+// ============================================================================
+
+export async function logPageVisit(pageKey: string) {
+    const supabase = await createClient()
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+        return // Silently fail - logging shouldn't break the app
+    }
+
+    const dailyLogId = await getDailyLogId(supabase, user.id)
+
+    // Check if we already logged this page today (same daily_log_id + page_key)
+    const { data: existing } = await supabase
+        .from('page_events')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('daily_log_id', dailyLogId)
+        .eq('page_key', pageKey)
+        .eq('event_type', 'page_view')
+        .limit(1)
+
+    if (existing && existing.length > 0) {
+        return // Already logged this page today
+    }
+
+    // Use the existing log_page_event RPC function
+    await supabase.rpc('log_page_event', {
+        p_user_id: user.id,
+        p_page_key: pageKey,
+        p_event_type: 'page_view',
+        p_daily_log_id: dailyLogId,
+        p_metadata: {}
+    })
+}
+
+// ============================================================================
 // SAVE MAGIC TASK (v1-m-16)
 // ============================================================================
 

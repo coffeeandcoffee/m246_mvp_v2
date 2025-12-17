@@ -11,7 +11,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { getUserName } from '../actions'
+import { getUserName, logPageVisit } from '../actions'
 
 export default function MorningPage18() {
     const router = useRouter()
@@ -20,6 +20,8 @@ export default function MorningPage18() {
 
     // Fetch user name on mount
     useEffect(() => {
+        logPageVisit('v1-m-18')
+
         async function fetchName() {
             const name = await getUserName()
             setUserName(name)

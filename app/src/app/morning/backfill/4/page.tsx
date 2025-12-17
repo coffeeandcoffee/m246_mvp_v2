@@ -11,13 +11,17 @@
 
 'use client'
 
-import { useState } from 'react'
-import { saveBackfillRating } from '../actions'
+import { useState, useEffect } from 'react'
+import { saveBackfillRating, logPageVisit } from '../actions'
 
 export default function BackfillPage4() {
     const [selectedRating, setSelectedRating] = useState<number | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        logPageVisit('v1-bf-4')
+    }, [])
 
     async function handleSubmit() {
         if (selectedRating === null) {

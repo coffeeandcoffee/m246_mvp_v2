@@ -16,7 +16,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { getUserName } from '../actions'
+import { getUserName, logPageVisit } from '../actions'
 
 const FEATURE_LINKS = [
     { key: 'scientific-background', label: 'Scientific Background of the M246-Program' },
@@ -40,6 +40,8 @@ export default function MorningPage22() {
 
     // Fetch user name on mount
     useEffect(() => {
+        logPageVisit('v1-m-22')
+
         async function fetchName() {
             const name = await getUserName()
             setUserName(name)

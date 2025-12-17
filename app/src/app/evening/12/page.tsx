@@ -11,13 +11,17 @@
 
 'use client'
 
-import { useState } from 'react'
-import { saveRating } from '../actions'
+import { useState, useEffect } from 'react'
+import { saveRating, logPageVisit } from '../actions'
 
 export default function EveningPage12() {
     const [selectedRating, setSelectedRating] = useState<number | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        logPageVisit('v1-e-12')
+    }, [])
 
     async function handleSubmit() {
         if (selectedRating === null) {
