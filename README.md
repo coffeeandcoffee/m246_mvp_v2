@@ -608,6 +608,7 @@ Track per UX version + date period:
 │   │   ├── app
 │   │   │   ├── evening                 # Evening sequence (14 pages + actions)
 │   │   │   ├── morning                 # Morning sequence (22 pages + 6 feature pages)
+│   │   │   │   └── backfill            # Backfill evening sequence (9 pages + actions)
 │   │   │   ├── onboarding              # Onboarding (12 pages + actions)
 │   │   │   ├── auth, login, signup     # Authentication
 │   │   │   ├── dashboard               # Protected dashboard
@@ -673,6 +674,28 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2025-12-17: Backfill Evening Sequence ✅
+
+**9-page backfill sequence for missed yesterday's evening data.**
+
+| Page | Content |
+|------|---------|
+| 1 | Intro: "We missed yesterday's reflection" |
+| 2-8 | 7 rating pages (positivity, confidence, overthinking, intuition, doubt, happiness, decision_speed) |
+| 9 | Completion: "Great, we captured yesterday's data" → `/morning/22` |
+
+**Files created:**
+- `morning/backfill/layout.tsx` - Shared layout
+- `morning/backfill/actions.ts` - `saveBackfillRating()` function
+- `morning/backfill/1-9/page.tsx` - All 9 pages
+
+**Next Steps:**
+1. Trigger logic in `/morning/21` (check if yesterday empty)
+2. Daily_logs implementation (proper date-specific saving)
+3. Progress persistence + session resume
+
+---
 
 ### 2025-12-17: Morning Sequence Complete ✅
 
