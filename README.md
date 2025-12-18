@@ -679,6 +679,8 @@ npx pm2 restart mvp2
 
 Current version deployed to https://member.m246.org via `deploy.sh`.
 
+**PM2 Fix**: Resolved 502 error by resetting PM2 daemon (`pm2 kill && rm -rf ~/.pm2/dump*`) - corrupted process config was referencing non-existent local pm2 module.
+
 ---
 
 ### 2025-12-17: Page Visit Logging ✅
