@@ -603,7 +603,13 @@ Track per UX version + date period:
 ```
 .
 ├── app
-│   ├── public                          # Static assets
+│   ├── public                          # Static assets (icons, manifest)
+│   │   ├── logo.png                    # Source logo (512x512)
+│   │   ├── icon-512x512.png            # PWA splash screen
+│   │   ├── icon-192x192.png            # PWA homescreen icon
+│   │   ├── apple-touch-icon.png        # iOS homescreen (180x180)
+│   │   ├── favicon.ico                 # Browser tab icon
+│   │   └── manifest.json               # PWA manifest
 │   ├── src
 │   │   ├── app
 │   │   │   ├── evening                 # Evening sequence (14 pages + actions)
@@ -674,6 +680,46 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2025-12-18: PWA Icons & App Branding ✅
+
+**Added app logo with all required icon sizes for PWA, iOS, and browser.**
+
+#### New Files Created:
+
+| File | Size | Purpose |
+|------|------|---------|
+| `public/logo.png` | 512×512 | Source logo file |
+| `public/icon-512x512.png` | 512×512 | PWA splash screen |
+| `public/icon-192x192.png` | 192×192 | PWA homescreen icon (Android) |
+| `public/apple-touch-icon.png` | 180×180 | iOS "Add to Home Screen" |
+| `public/favicon.ico` | 32×32 | Browser tab icon |
+
+#### Files Modified:
+
+| File | Change |
+|------|--------|
+| `public/manifest.json` | Added 192px and 512px icons with `maskable` purpose |
+| `src/app/layout.tsx` | Added `icons` metadata for favicon and apple-touch-icon |
+
+#### Icon Generation:
+
+To regenerate icons from a new `logo.png` (512×512 source):
+```bash
+cd app/public
+sips -z 192 192 logo.png --out icon-192x192.png
+sips -z 180 180 logo.png --out apple-touch-icon.png
+sips -z 32 32 logo.png --out favicon.ico
+cp logo.png icon-512x512.png
+```
+
+#### App Name:
+
+Confirmed "M246" is set in all required locations:
+- `layout.tsx` → `metadata.title` and `appleWebApp.title`
+- `manifest.json` → `name` and `short_name`
+
+---
 
 ### 2025-12-18: PWA Support & Routing Fixes ✅
 
