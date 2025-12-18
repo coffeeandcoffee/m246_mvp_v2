@@ -58,10 +58,10 @@ export async function checkRouting(): Promise<RoutingResult> {
         return { redirect: '/login', reason: 'not_authenticated' }
     }
 
-    // Get user profile (onboarded status, timezone)
+    // Get user profile (onboarded status, timezone, created_at for onboarding day check)
     const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
-        .select('onboarded, timezone')
+        .select('onboarded, timezone, created_at')
         .eq('user_id', user.id)
         .single()
 
@@ -76,6 +76,10 @@ export async function checkRouting(): Promise<RoutingResult> {
 
     const timezone = profile.timezone || 'UTC'
     const { date: logicalToday, isNightOwl } = getLogicalDate(timezone)
+
+    // Check if today is the onboarding day (skip morning redirect on onboarding day)
+    const onboardingDate = profile.created_at ? profile.created_at.split('T')[0] : null
+    const isOnboardingDay = onboardingDate === logicalToday
 
     // Get current time in user's timezone
     const now = new Date()
@@ -142,7 +146,8 @@ export async function checkRouting(): Promise<RoutingResult> {
 
     // HARD RULE 1: After 3am, before reflection time -> Morning
     // (Night owl is handled by logicalToday already counting as previous day)
-    if (!isNightOwl && hour >= 3 && currentTimeMinutes < reflectionTimeMinutes) {
+    // EXCEPTION: Skip on onboarding day - user just completed evening during onboarding
+    if (!isNightOwl && hour >= 3 && currentTimeMinutes < reflectionTimeMinutes && !isOnboardingDay) {
         if (!morningStarted) {
             return { redirect: '/morning/1', reason: 'morning_not_started' }
         }

@@ -675,6 +675,12 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-18: Onboarding Day Skip ✅
+
+**Fixed**: On the onboarding day itself, users were incorrectly redirected to `/morning/1` after completing evening during onboarding. Now `routing.ts` checks if `logicalToday === profile.created_at` and skips the morning redirect on onboarding day.
+
+---
+
 ### 2025-12-18: Time-Based Routing System ✅
 
 **Implemented centralized routing with HARD RULES enforcement.**
