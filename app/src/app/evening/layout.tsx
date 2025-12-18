@@ -12,6 +12,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRoutingPoll } from '@/lib/useRoutingPoll'
 
 // WhatsApp support number from README
 const SUPPORT_NUMBER = '+4915259495693'
@@ -67,6 +68,9 @@ export default function EveningLayout({
     const [showHelp, setShowHelp] = useState(false)
     // Get the pageId from the URL path
     const pageId = typeof window !== 'undefined' ? window.location.pathname : 'evening'
+
+    // Poll routing API every 10 seconds to enforce HARD RULES
+    useRoutingPoll()
 
     return (
         <div className="min-h-screen flex flex-col">

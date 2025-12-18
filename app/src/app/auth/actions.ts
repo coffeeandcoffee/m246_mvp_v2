@@ -111,8 +111,8 @@ export async function login(formData: FormData) {
         return { error: error.message }
     }
 
-    // Step 4: Success! Redirect to dashboard
-    redirect('/dashboard')
+    // Step 4: Success! Redirect to router for proper time-based routing
+    redirect('/router')
 }
 
 // ============================================================================

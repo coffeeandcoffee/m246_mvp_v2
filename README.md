@@ -675,13 +675,66 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-18: Time-Based Routing System ✅
+
+**Implemented centralized routing with HARD RULES enforcement.**
+
+#### New Files Created:
+
+| File | Purpose |
+|------|---------|
+| `src/lib/routing.ts` | Centralized routing logic (HARD RULES, night owl, time checks) |
+| `src/lib/useRoutingPoll.ts` | Client hook - polls API every 10 seconds |
+| `src/app/router/page.tsx` | Black loading page with spinner → server-side redirect |
+| `src/app/api/check-routing/route.ts` | API endpoint for client polling |
+
+#### Files Modified:
+
+| File | Line | Change |
+|------|------|--------|
+| `src/app/auth/actions.ts` | L114-115 | Login redirect: `/dashboard` → `/router` |
+| `src/app/dashboard/page.tsx` | All | Replaced with redirect to `/router` (dashboard forbidden) |
+| `src/app/evening/layout.tsx` | L14, L73 | Added `useRoutingPoll` import and call |
+| `src/app/morning/layout.tsx` | L14, L71 | Added `useRoutingPoll` import and call |
+
+#### HARD RULES Implemented:
+
+| Rule | Condition | Action |
+|------|-----------|--------|
+| Morning Priority | Time ≥ 3am AND today's morning not started | → `/morning/1` |
+| Evening Priority | Time ≥ reflection_time AND evening not started | → `/evening/1` |
+| Night Owl | Midnight–3am = yesterday's evening window | Use previous day's date |
+
+#### User Flow:
+
+```
+Login → /router (black spinner) → server checks state → redirect to:
+  - /onboarding/1 (not onboarded)
+  - /evening/1 (never completed evening OR evening time + not started)
+  - /morning/1 (morning time + not started)
+  - /morning/22 or /evening/14 (completed, "sitting" on final page)
+```
+
+#### 10-Second Polling:
+
+Morning and evening layouts call `/api/check-routing` every 10 seconds. If HARD RULES trigger (e.g., 3am boundary crossed), user is redirected mid-flow.
+
+#### Codebase Observations:
+
+- **`sequence_progress` table is UNUSED** - routing now uses `page_events` only. Table may be redundant/removable.
+- **`page_events` with `daily_log_id`** is the source of truth for completion status
+- Morning pages: `v1-m-*` prefix, Evening pages: `v1-e-*` prefix
+- Dashboard is forbidden per UX - users "sit" on final pages of sequences
+
+---
+
 ### 2025-12-18: Deployed to Production ✅
 
 Current version deployed to https://member.m246.org via `deploy.sh`.
 
 **PM2 Fix**: Resolved 502 error by resetting PM2 daemon (`pm2 kill && rm -rf ~/.pm2/dump*`) - corrupted process config was referencing non-existent local pm2 module.
 
-**Evening Page 14**: Replaced "Done" button with hint text: "You can close this app now and return tomorrow morning. Enjoy your evening!"
+**Evening Page 14**: Replaced "Done" button with hint text: "You can close this app now and return tomorrow morning. Enjoy your evening!" - eliminated redirect to dashboard.
 
 ---
 
