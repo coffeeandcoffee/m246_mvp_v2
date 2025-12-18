@@ -675,6 +675,12 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-18: Deployed to Production ✅
+
+Current version deployed to https://member.m246.org via `deploy.sh`.
+
+---
+
 ### 2025-12-17: Page Visit Logging ✅
 
 **All sequences now log page visits for progress tracking and session resume.**
