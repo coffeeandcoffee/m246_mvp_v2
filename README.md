@@ -681,6 +681,8 @@ Current version deployed to https://member.m246.org via `deploy.sh`.
 
 **PM2 Fix**: Resolved 502 error by resetting PM2 daemon (`pm2 kill && rm -rf ~/.pm2/dump*`) - corrupted process config was referencing non-existent local pm2 module.
 
+**Evening Page 14**: Replaced "Done" button with hint text: "You can close this app now and return tomorrow morning. Enjoy your evening!"
+
 ---
 
 ### 2025-12-17: Page Visit Logging ✅

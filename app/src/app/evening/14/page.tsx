@@ -11,7 +11,6 @@
  */
 
 import { createClient } from '@/utils/supabase/server'
-import Link from 'next/link'
 
 export default async function EveningPage14() {
     const supabase = await createClient()
@@ -102,10 +101,10 @@ export default async function EveningPage14() {
                 See you {returnText}.
             </p>
 
-            {/* Done button - goes to dashboard for now */}
-            <Link href="/dashboard" className="btn-primary inline-block">
-                Done
-            </Link>
+            {/* Hint text instead of button */}
+            <p className="text-gray-500 text-sm">
+                You can close this app now and return tomorrow morning. Enjoy your evening!
+            </p>
         </div>
     )
 }
