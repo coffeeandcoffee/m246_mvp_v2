@@ -81,6 +81,12 @@ export async function checkRouting(): Promise<RoutingResult> {
     const onboardingDate = profile.created_at ? profile.created_at.split('T')[0] : null
     const isOnboardingDay = onboardingDate === logicalToday
 
+    // SPECIAL CASE: On onboarding day, user completed evening during onboarding
+    // They should stay on evening/14 until next day's morning
+    if (isOnboardingDay) {
+        return { redirect: '/evening/14', reason: 'onboarding_day_complete' }
+    }
+
     // Get current time in user's timezone
     const now = new Date()
     const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }))
@@ -146,16 +152,19 @@ export async function checkRouting(): Promise<RoutingResult> {
 
     // HARD RULE 1: After 3am, before reflection time -> Morning
     // (Night owl is handled by logicalToday already counting as previous day)
-    // EXCEPTION: Skip on onboarding day - user just completed evening during onboarding
-    if (!isNightOwl && hour >= 3 && currentTimeMinutes < reflectionTimeMinutes && !isOnboardingDay) {
+    if (!isNightOwl && hour >= 3 && currentTimeMinutes < reflectionTimeMinutes) {
         if (!morningStarted) {
             return { redirect: '/morning/1', reason: 'morning_not_started' }
         }
         if (morningComplete) {
             return { redirect: '/morning/22', reason: 'morning_complete_waiting' }
         }
-        // Morning in progress - let them continue where they are
-        return { redirect: null, reason: 'morning_in_progress' }
+        // Morning in progress - resume at last visited page
+        const lastMorningPage = morningPages?.reduce((max, p) => {
+            const num = parseInt(p.page_key.replace('v1-m-', ''))
+            return num > max ? num : max
+        }, 0) || 1
+        return { redirect: `/morning/${lastMorningPage}`, reason: 'morning_in_progress' }
     }
 
     // HARD RULE 2: After reflection time (or night owl) -> Evening
@@ -166,7 +175,12 @@ export async function checkRouting(): Promise<RoutingResult> {
         if (eveningComplete) {
             return { redirect: '/evening/14', reason: 'evening_complete_waiting' }
         }
-        return { redirect: null, reason: 'evening_in_progress' }
+        // Evening in progress - resume at last visited page
+        const lastEveningPage = eveningPages?.reduce((max, p) => {
+            const num = parseInt(p.page_key.replace('v1-e-', ''))
+            return num > max ? num : max
+        }, 0) || 1
+        return { redirect: `/evening/${lastEveningPage}`, reason: 'evening_in_progress' }
     }
 
     // Night owl (midnight to 3am) - counts as yesterday's evening window
@@ -177,11 +191,16 @@ export async function checkRouting(): Promise<RoutingResult> {
         if (eveningComplete) {
             return { redirect: '/evening/14', reason: 'night_owl_evening_complete' }
         }
-        return { redirect: null, reason: 'night_owl_evening_in_progress' }
+        // Night owl evening in progress - resume at last visited page
+        const lastNightOwlPage = eveningPages?.reduce((max, p) => {
+            const num = parseInt(p.page_key.replace('v1-e-', ''))
+            return num > max ? num : max
+        }, 0) || 1
+        return { redirect: `/evening/${lastNightOwlPage}`, reason: 'night_owl_evening_in_progress' }
     }
 
-    // Fallback - shouldn't reach here
-    return { redirect: null, reason: 'no_redirect_needed' }
+    // Fallback - shouldn't reach here, but safe default to login
+    return { redirect: '/login', reason: 'fallback' }
 }
 
 /**

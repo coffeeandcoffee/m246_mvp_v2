@@ -675,9 +675,91 @@ npx pm2 restart mvp2
 
 ## Changelog
 
-### 2025-12-18: Onboarding Day Skip ✅
+### 2025-12-18: PWA Support & Routing Fixes ✅
 
-**Fixed**: On the onboarding day itself, users were incorrectly redirected to `/morning/1` after completing evening during onboarding. Now `routing.ts` checks if `logicalToday === profile.created_at` and skips the morning redirect on onboarding day.
+**Added PWA (Progressive Web App) support and fixed routing edge cases.**
+
+#### New Files Created:
+
+| File | Purpose |
+|------|---------|
+| `public/manifest.json` | PWA manifest with `display: standalone` |
+| `src/app/page.tsx` | Root `/` redirects to `/pwa` |
+| `src/app/pwa/page.tsx` | Standalone detection: homescreen→`/router`, browser→instructions |
+
+#### Files Modified:
+
+| File | Change |
+|------|--------|
+| `src/app/layout.tsx` | Added manifest link + Apple mobile web app meta tags |
+| `src/lib/routing.ts` | Fixed all null redirect cases (see below) |
+
+#### PWA Flow:
+
+```
+member.m246.org (/) → /pwa → detection:
+  - Standalone (homescreen) → /router → normal routing
+  - Browser → "Add to homescreen" instructions page
+```
+
+#### Routing Logic Complete Coverage:
+
+All 15 routing scenarios now return a valid redirect URL. No `null` returns exist.
+
+| Scenario | Redirect |
+|----------|----------|
+| Not authenticated | `/login` |
+| No profile | `/onboarding/1` |
+| Not onboarded | `/onboarding/1` |
+| **Onboarding day** | `/evening/14` |
+| Never did evening | `/evening/1` |
+| Morning: not started | `/morning/1` |
+| Morning: in progress | `/morning/{lastPage}` |
+| Morning: complete | `/morning/22` |
+| Evening: not started | `/evening/1` |
+| Evening: in progress | `/evening/{lastPage}` |
+| Evening: complete | `/evening/14` |
+| Night owl: not started | `/evening/1` |
+| Night owl: in progress | `/evening/{lastPage}` |
+| Night owl: complete | `/evening/14` |
+| Fallback (unknown) | `/login` |
+
+#### Key Fixes:
+
+1. **Onboarding day handling**: Users completing onboarding are redirected to `/evening/14` (not stuck in routing loop)
+2. **In-progress resume**: `morning_in_progress` and `evening_in_progress` now return last visited page (not `null`)
+3. **Night owl resume**: Same pattern for midnight–3am users
+4. **Safe fallback**: Unknown edge cases redirect to `/login` instead of `null`
+
+#### Routing Decision Tree:
+
+```
+checkRouting()
+├─ NOT authenticated → /login
+├─ No profile → /onboarding/1
+├─ Not onboarded → /onboarding/1
+├─ IS onboarding day → /evening/14
+├─ Never did evening → /evening/1
+├─ MORNING TIME (3am–reflection)
+│   ├─ Not started → /morning/1
+│   ├─ Complete → /morning/22
+│   └─ In progress → /morning/{lastPage}
+├─ EVENING TIME (after reflection)
+│   ├─ Not started → /evening/1
+│   ├─ Complete → /evening/14
+│   └─ In progress → /evening/{lastPage}
+├─ NIGHT OWL (midnight–3am)
+│   ├─ Not started → /evening/1
+│   ├─ Complete → /evening/14
+│   └─ In progress → /evening/{lastPage}
+└─ Fallback → /login
+```
+
+#### Testing PWA:
+
+1. **Browser**: Visit `member.m246.org` → see "Add to homescreen" instructions
+2. **Add to homescreen**: Follow iOS/Android instructions
+3. **Open from homescreen**: No browser bar, redirects to app flow
 
 ---
 
