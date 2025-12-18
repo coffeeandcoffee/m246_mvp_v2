@@ -681,6 +681,15 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-18: UI Polish & Help Flow ✅
+
+- **Evening page 14**: Changed text to "See you tomorrow, right after awaking."
+- **Morning pages 1, 3, 13**: Added 3-dot progress indicator (●○○, ●○○, ●●○) to match pages 15/18
+- **PWA page**: Added WhatsApp help popup (same as all other pages)
+- **All layouts**: Updated WhatsApp message format with spacing + "Type your message below here:" prompt
+
+---
+
 ### 2025-12-18: PWA Icons & App Branding ✅
 
 **Added app logo with all required icon sizes for PWA, iOS, and browser.**

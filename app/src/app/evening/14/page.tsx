@@ -98,7 +98,7 @@ export default async function EveningPage14() {
             </h1>
 
             <p className="text-gray-400 mb-16">
-                See you {returnText}.
+                See you tomorrow, right after awaking.
             </p>
 
             {/* Hint text instead of button */}

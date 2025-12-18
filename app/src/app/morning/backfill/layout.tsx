@@ -29,7 +29,7 @@ function HelpPopup({ pageId, onClose }: HelpPopupProps) {
     ]
 
     const handleClick = (type: string) => {
-        const message = encodeURIComponent(`${type} (pageid:${pageId})...`)
+        const message = encodeURIComponent(`${type} (pageid:${pageId})\n\nType your message below here:\n\n`)
         window.open(`https://wa.me/${SUPPORT_NUMBER.replace(/\+/g, '')}?text=${message}`, '_blank')
         onClose()
     }

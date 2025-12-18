@@ -50,6 +50,13 @@ export default function MorningPage1() {
             {/* Page counter */}
             <p className="text-gray-600 text-sm mb-16">1 / 22</p>
 
+            {/* Progress indicator - step 1 complete */}
+            <div className="flex justify-center gap-3 mb-8">
+                <div className="w-3 h-3 rounded-full bg-white"></div>
+                <div className="w-3 h-3 rounded-full bg-white/30"></div>
+                <div className="w-3 h-3 rounded-full bg-white/30"></div>
+            </div>
+
             {/* Step indicator */}
             <p className="text-gray-500 text-sm mb-4">Step #1 ✓</p>
 
