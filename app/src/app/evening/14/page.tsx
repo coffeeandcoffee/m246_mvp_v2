@@ -11,6 +11,7 @@
  */
 
 import { createClient } from '@/utils/supabase/server'
+import { EveningPageLogger } from '../EveningPageLogger'
 
 export default async function EveningPage14() {
     const supabase = await createClient()
@@ -72,6 +73,9 @@ export default async function EveningPage14() {
 
     return (
         <div className="w-full max-w-md text-center">
+            {/* Log page visit client-side */}
+            <EveningPageLogger pageKey="v1-e-14" />
+
             {/* Page counter */}
             <p className="text-gray-600 text-sm mb-16">14 / 14</p>
 

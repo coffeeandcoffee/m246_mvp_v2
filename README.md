@@ -602,30 +602,30 @@ Track per UX version + date period:
 
 ```
 .
-├── app
-│   ├── public                          # Static assets (icons, manifest)
-│   │   ├── logo.png                    # Source logo (512x512)
-│   │   ├── icon-512x512.png            # PWA splash screen
-│   │   ├── icon-192x192.png            # PWA homescreen icon
-│   │   ├── apple-touch-icon.png        # iOS homescreen (180x180)
-│   │   ├── favicon.ico                 # Browser tab icon
-│   │   └── manifest.json               # PWA manifest
-│   ├── src
-│   │   ├── app
-│   │   │   ├── evening                 # Evening sequence (14 pages + actions)
-│   │   │   ├── morning                 # Morning sequence (22 pages + 6 feature pages)
-│   │   │   │   └── backfill            # Backfill evening sequence (9 pages + actions)
-│   │   │   ├── onboarding              # Onboarding (12 pages + actions)
-│   │   │   ├── auth, login, signup     # Authentication
-│   │   │   ├── dashboard               # Protected dashboard
-│   │   │   └── globals.css, layout.tsx
-│   │   ├── components                  # UI components
-│   │   ├── lib                         # Hooks and utilities
-│   │   ├── types/database.ts           # Supabase types
-│   │   ├── utils/supabase              # Supabase client
-│   │   └── middleware.ts
-│   └── supabase/migrations             # 13 migration files
-└── README.md
+├── public                              # Static assets (icons, manifest)
+├── src
+│   ├── app
+│   │   ├── api/check-routing           # Routing API endpoint
+│   │   ├── auth                        # Auth actions
+│   │   ├── dashboard                   # Dashboard (redirects to /router)
+│   │   ├── dayoff                      # Day off page + actions [NEW]
+│   │   ├── evening                     # Evening sequence (14 pages)
+│   │   ├── login, signup               # Auth pages
+│   │   ├── morning                     # Morning sequence (22 pages)
+│   │   │   ├── backfill                # Backfill evening (9 pages)
+│   │   │   └── features                # Feature placeholder pages
+│   │   ├── onboarding                  # Onboarding (12 pages)
+│   │   ├── pwa                         # PWA detection page
+│   │   ├── router                      # Central routing page
+│   │   ├── globals.css, layout.tsx, page.tsx
+│   ├── lib
+│   │   ├── routing.ts                  # Central routing logic
+│   │   └── useRoutingPoll.ts           # 10s polling hook
+│   ├── types/database.ts               # Supabase types
+│   └── utils/supabase                  # Supabase client
+├── supabase/migrations                 # 14 migration files
+├── deploy.sh                           # Deployment script
+└── package.json
 ```
 
 ## Environment Variables
@@ -680,6 +680,66 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2025-12-22: Day Off Detection & Override ✅
+
+**Automatic day-off detection with override option.**
+
+> [!NOTE]  
+> Further real-life multi-day testing required to fully validate workability.
+
+#### New Files
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/app/dayoff/page.tsx` | 1-76 | Day off UI with sun icon + "Make today a work day" button |
+| `src/app/dayoff/actions.ts` | 1-76 | `overrideDayOff()` server action - saves override, redirects to `/router` |
+| `supabase/migrations/00014_add_day_off_override_metric.sql` | 1-5 | INSERT new metric `day_off_override` |
+
+#### Modified Files
+
+| File | Lines | Change |
+|------|-------|--------|
+| `src/lib/routing.ts` | 160-191 | Added day-off check block (only if `!morningStarted && !eveningStarted`) |
+
+#### Key Logic (`routing.ts:160-191`)
+
+```
+if (!morningStarted && !eveningStarted) {
+    // Query most recent return_date
+    // If return_date > today AND no day_off_override → /dayoff
+}
+```
+
+#### Complete Routing Decision Tree
+
+```
+checkRouting()
+├─ NOT authenticated → /login
+├─ No profile → /onboarding/1
+├─ Not onboarded → /onboarding/1
+├─ IS onboarding day → /evening/14
+├─ Never did evening → /evening/1
+├─ (L144-L164: fetch morningStarted, eveningStarted)
+├─ DAY OFF CHECK (L160-L191: only if !morningStarted AND !eveningStarted)
+│   └─ return_date > today AND no override → /dayoff
+├─ MORNING TIME (L197-L212)
+├─ EVENING TIME (L214-L228)
+├─ NIGHT OWL (L230-L244)
+└─ Fallback → /login
+```
+
+---
+
+### 2025-12-19: Evening Page 14 Routing Fix ✅
+
+**Fixed routing loop where page 14 kept redirecting back to page 13.**
+
+- **Root cause**: Page 14 (server component) wasn't logging `v1-e-14` visit, so router thought evening was incomplete
+- **Fix**: Created `EveningPageLogger.tsx` client component; added to page 14 to log visit on mount
+- Morning page 22 worked correctly because it's a client component that already called `logPageVisit`
+
+---
 
 ### 2025-12-18: UI Polish & Help Flow ✅
 

@@ -87,6 +87,12 @@ export async function checkRouting(): Promise<RoutingResult> {
         return { redirect: '/evening/14', reason: 'onboarding_day_complete' }
     }
 
+    // Get today's daily_log_id (needed for completion checks)
+    const { data: dailyLogId } = await supabase.rpc('get_or_create_daily_log', {
+        p_user_id: user.id,
+        p_date: logicalToday
+    })
+
     // Get current time in user's timezone
     const now = new Date()
     const userTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }))
@@ -105,12 +111,6 @@ export async function checkRouting(): Promise<RoutingResult> {
     if (!anyEveningPage || anyEveningPage.length === 0) {
         return { redirect: '/evening/1', reason: 'never_completed_evening' }
     }
-
-    // Get today's daily_log_id (for checking completions)
-    const { data: dailyLogId } = await supabase.rpc('get_or_create_daily_log', {
-        p_user_id: user.id,
-        p_date: logicalToday
-    })
 
     // Check morning completion for today
     const { data: morningPages } = await supabase
@@ -133,6 +133,37 @@ export async function checkRouting(): Promise<RoutingResult> {
 
     const eveningStarted = eveningPages && eveningPages.length > 0
     const eveningComplete = eveningPages?.some(p => p.page_key === 'v1-e-14')
+
+    // DAY OFF CHECK: Only applies if NO work has started today
+    // If user already started morning or evening, they've implicitly overridden the day off
+    if (!morningStarted && !eveningStarted) {
+        // Check if today is a scheduled day off
+        // A day off is when: most recent return_date > today AND no day_off_override for today
+        const { data: scheduledDayOff } = await supabase
+            .from('metric_responses')
+            .select('value_date, metrics!inner(key)')
+            .eq('user_id', user.id)
+            .eq('metrics.key', 'return_date')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+
+        if (scheduledDayOff?.value_date && scheduledDayOff.value_date > logicalToday) {
+            // Check for explicit override
+            const { data: override } = await supabase
+                .from('metric_responses')
+                .select('id, metrics!inner(key)')
+                .eq('user_id', user.id)
+                .eq('daily_log_id', dailyLogId)
+                .eq('metrics.key', 'day_off_override')
+                .limit(1)
+                .single()
+
+            if (!override) {
+                return { redirect: '/dayoff', reason: 'scheduled_day_off' }
+            }
+        }
+    }
 
     // Get today's evening reflection time
     const { data: reflectionData } = await supabase
