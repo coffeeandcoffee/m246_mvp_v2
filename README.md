@@ -681,6 +681,44 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-23: Stats API & Help Click Logging ✅
+
+**New `/api/stats` endpoint** returns JSON with key metrics.
+
+#### API Usage
+
+```bash
+curl https://member.m246.org/api/stats
+```
+
+#### Response Format
+
+```json
+{
+  "generated_at": "2025-12-23T14:00:00.000Z",
+  "total_users": 4,
+  "daily_active_users": 1,
+  "feature_requests": [
+    { "id": "uuid", "link_key": "Community Call", "suggestion_text": "...", "created_at": "..." }
+  ],
+  "help_clicks_by_page": [
+    { "page": "/morning/22", "count": 2 }
+  ]
+}
+```
+
+#### Changes
+
+| File | Purpose |
+|------|---------|
+| `src/app/api/stats/route.ts` | Stats API endpoint |
+| `src/app/actions.ts` | Shared `logHelpPopupOpen()` action |
+| All layouts | Now log help clicks on popup open |
+
+**Requires**: `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`
+
+---
+
 ### 2025-12-23: Morning Features UX Fix ✅
 
 - Polling now respects `/morning/features/*` pages (coming soon pages) - no longer redirects back to page 22

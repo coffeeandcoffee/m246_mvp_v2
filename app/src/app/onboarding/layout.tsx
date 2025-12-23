@@ -9,7 +9,8 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { logHelpPopupOpen } from '@/app/actions'
 
 // WhatsApp support number from README
 const SUPPORT_NUMBER = '+4915259495693'
@@ -63,8 +64,14 @@ export default function OnboardingLayout({
     children: React.ReactNode
 }) {
     const [showHelp, setShowHelp] = useState(false)
-    // We'll get the pageId from the URL path
-    const pageId = typeof window !== 'undefined' ? window.location.pathname : 'onboarding'
+    const [pageId, setPageId] = useState('onboarding')
+
+    const handleHelpClick = () => {
+        const currentPath = window.location.pathname
+        setPageId(currentPath)
+        logHelpPopupOpen(currentPath)
+        setShowHelp(true)
+    }
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -76,7 +83,7 @@ export default function OnboardingLayout({
             {/* Help link - fixed at bottom */}
             <footer className="py-6 text-center">
                 <button
-                    onClick={() => setShowHelp(true)}
+                    onClick={handleHelpClick}
                     className="help-link"
                 >
                     help / error / stuck

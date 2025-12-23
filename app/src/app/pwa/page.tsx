@@ -10,6 +10,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { logHelpPopupOpen } from '@/app/actions'
 
 // WhatsApp support number
 const SUPPORT_NUMBER = '+4915259495693'
@@ -125,7 +126,10 @@ export default function PWAPage() {
 
             {/* Help/stuck/error link */}
             <button
-                onClick={() => setShowHelp(true)}
+                onClick={() => {
+                    logHelpPopupOpen('/pwa')
+                    setShowHelp(true)
+                }}
                 className="text-gray-600 text-xs mt-6 underline hover:text-gray-400"
             >
                 Help / Stuck / Error?

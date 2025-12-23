@@ -10,8 +10,9 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRoutingPoll } from '@/lib/useRoutingPoll'
+import { logHelpPopupOpen } from '@/app/actions'
 
 // WhatsApp support number from README
 const SUPPORT_NUMBER = '+4915259495693'
@@ -65,10 +66,18 @@ export default function MorningLayout({
     children: React.ReactNode
 }) {
     const [showHelp, setShowHelp] = useState(false)
-    const pageId = typeof window !== 'undefined' ? window.location.pathname : 'morning'
+    const [pageId, setPageId] = useState('morning')
 
     // Poll routing API every 10 seconds to enforce HARD RULES
     useRoutingPoll()
+
+    const handleHelpClick = () => {
+        // Capture path at click time
+        const currentPath = window.location.pathname
+        setPageId(currentPath)
+        logHelpPopupOpen(currentPath)
+        setShowHelp(true)
+    }
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -80,7 +89,7 @@ export default function MorningLayout({
             {/* Help link - fixed at bottom */}
             <footer className="py-6 text-center">
                 <button
-                    onClick={() => setShowHelp(true)}
+                    onClick={handleHelpClick}
                     className="help-link"
                 >
                     help / error / stuck
