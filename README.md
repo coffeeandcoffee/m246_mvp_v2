@@ -681,6 +681,13 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2025-12-23: Morning Features UX Fix ✅
+
+- Polling now respects `/morning/features/*` pages (coming soon pages) - no longer redirects back to page 22
+- Removed useless dashboard button from morning page 22
+
+---
+
 ### 2025-12-22: Day Off Detection & Override ✅
 
 **Automatic day-off detection with override option.**

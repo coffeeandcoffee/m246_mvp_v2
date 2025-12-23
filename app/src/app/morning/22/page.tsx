@@ -105,9 +105,7 @@ export default function MorningPage22() {
         router.push(`/morning/features/${featureKey}`)
     }
 
-    function handleDashboard() {
-        router.push('/dashboard')
-    }
+
 
     const progressPercent = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0
 
@@ -197,14 +195,6 @@ export default function MorningPage22() {
                     ))}
                 </div>
             </div>
-
-            {/* Dashboard button */}
-            <button
-                onClick={handleDashboard}
-                className="btn-primary"
-            >
-                Go to Dashboard
-            </button>
         </div>
     )
 }

@@ -25,6 +25,14 @@ export function useRoutingPoll() {
                     // Don't redirect if we're already on the target page
                     const currentPath = window.location.pathname
                     if (currentPath !== data.redirect) {
+                        // Don't redirect if user is on a features page linked from morning/22
+                        // These are valid "end state" pages where user should be able to stay
+                        const isOnMorningFeatures = currentPath.startsWith('/morning/features/')
+                        const redirectToMorning22 = data.redirect === '/morning/22'
+                        if (isOnMorningFeatures && redirectToMorning22) {
+                            // User chose to visit a feature page - respect that
+                            return
+                        }
                         router.push(data.redirect)
                     }
                 }
