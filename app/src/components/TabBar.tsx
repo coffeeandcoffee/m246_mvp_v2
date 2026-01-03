@@ -122,7 +122,7 @@ export default function TabBar() {
     }
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 z-40 safe-area-bottom">
+        <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 z-40 safe-area-bottom pb-3">
             <div className="flex justify-around items-center h-16 max-w-md mx-auto">
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.id

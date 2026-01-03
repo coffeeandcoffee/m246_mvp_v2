@@ -193,8 +193,18 @@ export default function MorningPage12() {
                     )}
                 </button>
 
-                {/* Progress bar */}
-                <div className="w-full bg-white/20 rounded-full h-1 mb-2">
+                {/* Progress bar - clickable to seek */}
+                <div
+                    className="w-full bg-white/20 rounded-full h-4 mb-2 cursor-pointer flex items-center"
+                    onClick={(e) => {
+                        if (audioRef.current && audioDuration > 0) {
+                            const rect = e.currentTarget.getBoundingClientRect()
+                            const clickX = e.clientX - rect.left
+                            const percent = clickX / rect.width
+                            audioRef.current.currentTime = percent * audioDuration
+                        }
+                    }}
+                >
                     <div
                         className="bg-white h-1 rounded-full transition-all duration-300"
                         style={{ width: `${progressPercent}%` }}

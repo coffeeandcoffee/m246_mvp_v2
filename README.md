@@ -602,34 +602,39 @@ Track per UX version + date period:
 
 ```
 .
-├── public                              # Static assets (icons, manifest)
+├── public
+│   ├── apple-touch-icon.png
+│   ├── favicon.ico
+│   ├── icon-192x192.png
+│   ├── icon-512x512.png
+│   ├── logo.png
+│   └── manifest.json
 ├── src
 │   ├── app
 │   │   ├── (app)                       # Authenticated pages route group
 │   │   │   ├── dayoff                  # Day off page + actions
 │   │   │   ├── evening                 # Evening sequence (14 pages)
+│   │   │   ├── feature                 # Feature placeholder pages
 │   │   │   ├── morning                 # Morning sequence (22 pages)
-│   │   │   │   ├── backfill            # Backfill evening (9 pages)
-│   │   │   │   └── features            # Feature placeholder pages
 │   │   │   ├── onboarding              # Onboarding (12 pages)
 │   │   │   ├── purpose                 # Strategy tab - 4 persistence components
 │   │   │   ├── router                  # Central routing page
 │   │   │   ├── settings                # Settings tab placeholder
+│   │   │   ├── waiting                 # Waiting page
 │   │   │   └── layout.tsx              # Auth check + TabBar + HelpButton
 │   │   ├── api                         # API endpoints
 │   │   ├── auth                        # Auth actions
-│   │   ├── login, signup               # Auth pages (no TabBar)
-│   │   ├── pwa                         # PWA detection page
-│   │   └── globals.css, layout.tsx, page.tsx
+│   │   ├── dashboard, login, signup    # Auth pages (no TabBar)
+│   │   └── pwa                         # PWA detection page
 │   ├── components
 │   │   ├── HelpButton.tsx              # Global help button (top-right)
-│   │   └── TabBar.tsx                  # Bottom tab navigation
+│   │   └── TabBar.tsx                  # Bottom tab navigation (with bottom padding)
 │   ├── lib
 │   │   ├── audio.ts                    # User-specific audio fetching
 │   │   ├── routing.ts                  # Central routing logic
 │   │   └── useRoutingPoll.ts           # 10s polling hook
 │   ├── types/database.ts               # Supabase types
-│   └── utils/supabase                  # Supabase client
+│   └── utils/supabase                  # Supabase client utilities
 ├── supabase/migrations                 # 14 migration files
 ├── deploy.sh                           # Deployment script
 └── package.json
@@ -687,6 +692,24 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2026-01-03: Audio Player Seek & Tab Bar Spacing ✅
+
+**Audio progress bar is now interactive (click/tap to seek). Tab bar has extra bottom padding.**
+
+#### Changes Made
+
+| File | Change |
+|------|--------|
+| `src/app/(app)/morning/12/page.tsx` | Progress bar clickable — seek to any position |
+| `src/app/(app)/evening/14/page.tsx` | Progress bar clickable — seek to any position |
+| `src/components/TabBar.tsx` | Added `pb-3` padding below icons |
+
+#### How Seek Works
+
+Click/tap anywhere on the audio progress bar → audio jumps to that position. Progress bar height increased from `h-1` to `h-4` for easier touch targets, with the visible bar (`h-1`) centered inside.
+
+---
 
 ### 2026-01-03: User-Specific Audio ✅
 
