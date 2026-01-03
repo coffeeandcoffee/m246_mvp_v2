@@ -619,16 +619,16 @@ Track per UX version + date period:
 │   │   │   ├── onboarding              # Onboarding (12 pages)
 │   │   │   ├── purpose                 # Strategy tab - 4 persistence components
 │   │   │   ├── router                  # Central routing page
-│   │   │   ├── settings                # Settings tab placeholder
+│   │   │   ├── settings                # Settings tab with logout
 │   │   │   ├── waiting                 # Waiting page
 │   │   │   └── layout.tsx              # Auth check + TabBar + HelpButton
 │   │   ├── api                         # API endpoints
-│   │   ├── auth                        # Auth actions
+│   │   ├── auth                        # Auth actions (signup, login, signout)
 │   │   ├── dashboard, login, signup    # Auth pages (no TabBar)
 │   │   └── pwa                         # PWA detection page
 │   ├── components
 │   │   ├── HelpButton.tsx              # Global help button (top-right)
-│   │   └── TabBar.tsx                  # Bottom tab navigation (with bottom padding)
+│   │   └── TabBar.tsx                  # Bottom tab navigation
 │   ├── lib
 │   │   ├── audio.ts                    # User-specific audio fetching
 │   │   ├── routing.ts                  # Central routing logic
@@ -692,6 +692,18 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2026-01-03: Settings Page Logout ✅
+
+**Settings tab now has logout functionality.**
+
+| File | Change |
+|------|--------|
+| `src/app/(app)/settings/page.tsx` | Added gray underlined "Log out" link |
+
+Clicking "Log out" calls `signout()` from `src/app/auth/actions.ts` → signs user out → redirects to `/`.
+
+---
 
 ### 2026-01-03: Strategy Tab 3-Step Guide ✅
 
