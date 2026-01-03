@@ -1,0 +1,1 @@
+please summarize all changes efficiently and keep it simple into readme changelog entry. also update the tree via command. also in cha gelog entry include all someone needs to know with clear references that has only the readme to enter the project nothing else so nothing can go wrong. keep it simple.

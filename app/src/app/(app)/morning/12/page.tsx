@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { logPageVisit } from '../actions'
+import { getUserAudioUrl } from '@/lib/audio'
 
 export default function MorningPage12() {
     const router = useRouter()
@@ -44,30 +45,24 @@ export default function MorningPage12() {
         logPageVisit('v1-m-12')
 
         async function fetchAudio() {
-            try {
-                const supabase = createClient()
+            const supabase = createClient()
 
-                // Default audio path - simple and direct
-                const audioPath = 'default/default_grounding_audio.mp3'
-
-                // Get SIGNED URL for the audio (secure, temporary access)
-                // This works with private buckets - URL expires in 1 hour
-                const { data, error } = await supabase.storage
-                    .from('audio')
-                    .createSignedUrl(audioPath, 3600) // 3600 seconds = 1 hour
-
-                if (error) {
-                    console.error('Signed URL error:', error)
-                    setAudioError('Failed to load audio')
-                    return
-                }
-
-                console.log('Audio URL (signed):', data.signedUrl)
-                setAudioUrl(data.signedUrl)
-            } catch (err) {
-                console.error('Error fetching audio URL:', err)
-                setAudioError('Failed to load audio')
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                setAudioError('Not authenticated')
+                return
             }
+
+            // Fetch user-specific audio (or fallback to default)
+            const { signedUrl, error } = await getUserAudioUrl(supabase, user.id)
+
+            if (error) {
+                setAudioError(error)
+                return
+            }
+
+            setAudioUrl(signedUrl)
         }
 
         fetchAudio()

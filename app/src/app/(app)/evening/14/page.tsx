@@ -15,6 +15,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
 import { logPageVisit } from '../actions'
+import { getUserAudioUrl } from '@/lib/audio'
 
 const FEATURE_LINKS = [
     { key: 'scientific-background', label: 'Scientific Background of the M246-Program' },
@@ -57,28 +58,27 @@ export default function EveningPage14() {
         fetchName()
     }, [])
 
-    // Fetch audio URL on mount
+    // Fetch audio URL on mount (user-specific or fallback to default)
     useEffect(() => {
         async function fetchAudio() {
-            try {
-                const supabase = createClient()
-                const audioPath = 'default/default_grounding_audio.mp3'
+            const supabase = createClient()
 
-                const { data, error } = await supabase.storage
-                    .from('audio')
-                    .createSignedUrl(audioPath, 3600)
-
-                if (error) {
-                    console.error('Audio URL error:', error)
-                    setAudioError('Failed to load audio')
-                    return
-                }
-
-                setAudioUrl(data.signedUrl)
-            } catch (err) {
-                console.error('Error fetching audio:', err)
-                setAudioError('Failed to load audio')
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                setAudioError('Not authenticated')
+                return
             }
+
+            // Fetch user-specific audio (or fallback to default)
+            const { signedUrl, error } = await getUserAudioUrl(supabase, user.id)
+
+            if (error) {
+                setAudioError(error)
+                return
+            }
+
+            setAudioUrl(signedUrl)
         }
         fetchAudio()
     }, [])

@@ -625,6 +625,7 @@ Track per UX version + date period:
 │   │   ├── HelpButton.tsx              # Global help button (top-right)
 │   │   └── TabBar.tsx                  # Bottom tab navigation
 │   ├── lib
+│   │   ├── audio.ts                    # User-specific audio fetching
 │   │   ├── routing.ts                  # Central routing logic
 │   │   └── useRoutingPoll.ts           # 10s polling hook
 │   ├── types/database.ts               # Supabase types
@@ -686,6 +687,36 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2026-01-03: User-Specific Audio ✅
+
+**Audio player now loads user-specific audio files with fallback to default.**
+
+#### How It Works
+
+1. Checks for audio files in `audio/{user_id}/` folder
+2. Uses the **most recently uploaded** file (sorted by `created_at`)
+3. Falls back to `audio/default/default_grounding_audio.mp3` if folder empty/missing
+
+#### To Upload Audio for a User
+
+1. Get user_id (Supabase SQL Editor):
+   ```sql
+   SELECT user_id FROM user_profiles WHERE name = 'YourUserName';
+   ```
+2. Go to **Storage** → `audio` bucket
+3. Create folder with the `user_id` (UUID)
+4. Upload `.mp3`, `.m4a`, or `.wav` file
+
+#### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/lib/audio.ts` | **NEW** – `getUserAudioUrl()` utility |
+| `src/app/(app)/morning/12/page.tsx` | Uses user-specific audio |
+| `src/app/(app)/evening/14/page.tsx` | Uses user-specific audio |
+
+---
 
 ### 2026-01-03: Purpose Tab & Tab Rename ✅
 
