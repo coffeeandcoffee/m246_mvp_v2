@@ -91,11 +91,11 @@ export default function PWAPage() {
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-center">
             <h1 className="text-2xl font-semibold text-white mb-4">
-                Add M246 to your homescreen
+                Add M246 to your phone's homescreen
             </h1>
 
             <p className="text-gray-400 mb-8 max-w-sm">
-                For the best experience, add this app to your homescreen and open it from there.
+                M246 is mobile only. For the best experience, add this app to your homescreen and open it from there.
             </p>
 
             <div className="space-y-6 text-left max-w-sm">

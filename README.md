@@ -605,19 +605,24 @@ Track per UX version + date period:
 ├── public                              # Static assets (icons, manifest)
 ├── src
 │   ├── app
-│   │   ├── api/check-routing           # Routing API endpoint
+│   │   ├── (app)                       # Route group for authenticated pages
+│   │   │   ├── dayoff                  # Day off page + actions
+│   │   │   ├── evening                 # Evening sequence (14 pages)
+│   │   │   ├── morning                 # Morning sequence (22 pages)
+│   │   │   │   ├── backfill            # Backfill evening (9 pages)
+│   │   │   │   └── features            # Feature placeholder pages
+│   │   │   ├── onboarding              # Onboarding (12 pages)
+│   │   │   ├── purpose                 # Strategy tab placeholder [NEW]
+│   │   │   ├── router                  # Central routing page
+│   │   │   ├── settings                # Settings tab placeholder [NEW]
+│   │   │   └── layout.tsx              # Auth check + TabBar wrapper
+│   │   ├── api                         # API endpoints
 │   │   ├── auth                        # Auth actions
-│   │   ├── dashboard                   # Dashboard (redirects to /router)
-│   │   ├── dayoff                      # Day off page + actions [NEW]
-│   │   ├── evening                     # Evening sequence (14 pages)
-│   │   ├── login, signup               # Auth pages
-│   │   ├── morning                     # Morning sequence (22 pages)
-│   │   │   ├── backfill                # Backfill evening (9 pages)
-│   │   │   └── features                # Feature placeholder pages
-│   │   ├── onboarding                  # Onboarding (12 pages)
+│   │   ├── login, signup               # Auth pages (no TabBar)
 │   │   ├── pwa                         # PWA detection page
-│   │   ├── router                      # Central routing page
-│   │   ├── globals.css, layout.tsx, page.tsx
+│   │   └── globals.css, layout.tsx, page.tsx
+│   ├── components
+│   │   └── TabBar.tsx                  # Bottom tab navigation [NEW]
 │   ├── lib
 │   │   ├── routing.ts                  # Central routing logic
 │   │   └── useRoutingPoll.ts           # 10s polling hook
@@ -673,13 +678,46 @@ npx pm2 restart mvp2
 ## Auth Flow
 
 1. Unauthenticated users can access `/`, `/login`, `/signup`
-2. `/dashboard` is protected - redirects to `/login` if not authenticated
+2. All pages inside `(app)/` route group require authentication
 3. Middleware refreshes sessions on every request
 4. Server actions handle sign up/in/out with Supabase
 
 ---
 
 ## Changelog
+
+### 2026-01-03: Bottom Tab Navigation ✅
+
+**Added TikTok/YouTube-style bottom tab bar for authenticated users.**
+
+#### Overview
+
+Three tabs at the bottom of the app (only visible after login):
+- **Strategy** (left, compass icon) → `/purpose` placeholder
+- **Action** (center, lightning icon) → `/router` → current sequence
+- **Settings** (right, gear icon) → `/settings` placeholder
+
+#### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/components/TabBar.tsx` | Bottom tab bar component |
+| `src/app/(app)/layout.tsx` | Auth check + renders TabBar |
+| `src/app/(app)/purpose/page.tsx` | Strategy tab placeholder |
+| `src/app/(app)/settings/page.tsx` | Settings tab placeholder |
+
+#### Architecture Change
+
+All authenticated pages moved into `(app)` route group:
+- `src/app/(app)/morning/` — Morning sequence
+- `src/app/(app)/evening/` — Evening sequence  
+- `src/app/(app)/onboarding/` — Onboarding sequence
+- `src/app/(app)/dayoff/` — Day off page
+- `src/app/(app)/router/` — Central routing
+
+The `(app)/layout.tsx` performs server-side auth check → redirects to `/login` if unauthenticated.
+
+---
 
 ### 2025-12-23: Stats API & Help Click Logging ✅
 

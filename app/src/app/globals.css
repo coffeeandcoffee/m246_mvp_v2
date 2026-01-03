@@ -117,3 +117,8 @@ body {
 .help-link:hover {
     color: var(--text-secondary);
 }
+
+/* Safe area for iOS devices with home indicator */
+.safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
