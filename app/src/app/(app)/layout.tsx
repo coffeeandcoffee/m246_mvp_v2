@@ -11,6 +11,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import TabBar from '@/components/TabBar'
+import HelpButton from '@/components/HelpButton'
 
 export default async function AppLayout({
     children,
@@ -28,6 +29,9 @@ export default async function AppLayout({
 
     return (
         <>
+            {/* Global help button - fixed top-right */}
+            <HelpButton />
+
             {/* Main content - add padding at bottom for TabBar */}
             <div className="pb-16">
                 {children}

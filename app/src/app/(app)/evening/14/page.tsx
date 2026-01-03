@@ -153,7 +153,7 @@ export default function EveningPage14() {
 
             {/* Audio player */}
             <div className="bg-white/5 border border-white/20 rounded-lg p-6 mb-8">
-                <p className="text-gray-400 text-sm mb-4">Your audio (available anytime)</p>
+                <p className="text-gray-400 text-sm mb-4">Your Mind Hack Audio (available anytime)</p>
 
                 {/* Audio element */}
                 {audioUrl && (

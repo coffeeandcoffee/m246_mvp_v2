@@ -686,6 +686,17 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2026-01-03: Global Help Button ✅
+
+**Help button now fixed in top-right corner of all authenticated pages.**
+
+| File | Purpose |
+|------|---------|
+| `src/components/HelpButton.tsx` | Global help button component |
+| `src/app/(app)/layout.tsx` | Renders HelpButton alongside TabBar |
+
+---
+
 ### 2026-01-03: Simplified Evening Flow ✅
 
 **Evening flow now happens immediately after morning flow (not in the evening).**
