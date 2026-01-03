@@ -1,81 +1,122 @@
 /**
  * EVENING PAGE 14 (v1-e-14)
  * 
- * "Great job NAME. See you [DATE]."
+ * Final page after evening flow (which now follows morning flow immediately).
+ * Combines:
+ * 1. Evening completion message ("See you tomorrow")
+ * 2. Morning page 22 content (audio player + feature links)
  * 
- * Final page of evening sequence.
- * Shows "tomorrow" only if returning next day (committed on page 2).
- * Shows specific date if taking day off (from return_date).
- * 
- * This is a SERVER component to fetch user data.
+ * This is a CLIENT component to support audio player state.
  */
 
-import { createClient } from '@/utils/supabase/server'
-import { EveningPageLogger } from '../EveningPageLogger'
+'use client'
 
-export default async function EveningPage14() {
-    const supabase = await createClient()
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
+import { logPageVisit } from '../actions'
 
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser()
+const FEATURE_LINKS = [
+    { key: 'scientific-background', label: 'Scientific Background of the M246-Program' },
+    { key: 'community-call', label: 'Join a Community Call' },
+    { key: 'accountability-partner', label: 'Get an Accountability Partner' },
+    { key: 'day-structure', label: 'Get more structure in my day' },
+    { key: 'invite-friends', label: 'Invite-Link for my Friends to join M246' },
+    { key: 'edit-audio', label: 'Edit my Reality-Defining Audio' },
+]
 
-    if (!user) {
-        return (
-            <div className="w-full max-w-md text-center">
-                <p className="text-gray-400">Not authenticated</p>
-            </div>
-        )
-    }
+export default function EveningPage14() {
+    const router = useRouter()
+    const audioRef = useRef<HTMLAudioElement>(null)
 
-    // Get user's name from profile
-    const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('name')
-        .eq('user_id', user.id)
-        .single()
+    const [userName, setUserName] = useState<string>('friend')
+    const [audioUrl, setAudioUrl] = useState<string | null>(null)
+    const [audioError, setAudioError] = useState<string | null>(null)
+    const [audioDuration, setAudioDuration] = useState<number>(0)
+    const [isPlaying, setIsPlaying] = useState(false)
+    const [currentTime, setCurrentTime] = useState(0)
 
-    const userName = profile?.name || 'friend'
+    // Log page visit and fetch user name on mount
+    useEffect(() => {
+        logPageVisit('v1-e-14')
 
-    // Check if user committed (returning tomorrow) or took day off (has return_date)
-    // First, check for committed_tomorrow metric
-    const { data: commitMetric } = await supabase
-        .from('metric_responses')
-        .select('value_text, metrics!inner(key)')
-        .eq('user_id', user.id)
-        .eq('metrics.key', 'committed_tomorrow')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+        async function fetchName() {
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('user_profiles')
+                    .select('name')
+                    .eq('user_id', user.id)
+                    .single()
+                if (profile?.name) {
+                    setUserName(profile.name)
+                }
+            }
+        }
+        fetchName()
+    }, [])
 
-    const committed = commitMetric?.value_text === 'true'
+    // Fetch audio URL on mount
+    useEffect(() => {
+        async function fetchAudio() {
+            try {
+                const supabase = createClient()
+                const audioPath = 'default/default_grounding_audio.mp3'
 
-    // Calculate what to show
-    let returnText = 'tomorrow'
+                const { data, error } = await supabase.storage
+                    .from('audio')
+                    .createSignedUrl(audioPath, 3600)
 
-    if (!committed) {
-        // User took day off - get their return_date
-        const { data: returnMetric } = await supabase
-            .from('metric_responses')
-            .select('value_date, metrics!inner(key)')
-            .eq('user_id', user.id)
-            .eq('metrics.key', 'return_date')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single()
+                if (error) {
+                    console.error('Audio URL error:', error)
+                    setAudioError('Failed to load audio')
+                    return
+                }
 
-        if (returnMetric?.value_date) {
-            const date = new Date(returnMetric.value_date + 'T00:00:00')
-            const weekday = date.toLocaleDateString('en-US', { weekday: 'long' })
-            const dateStr = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
-            returnText = `on ${weekday} morning, ${dateStr}`
+                setAudioUrl(data.signedUrl)
+            } catch (err) {
+                console.error('Error fetching audio:', err)
+                setAudioError('Failed to load audio')
+            }
+        }
+        fetchAudio()
+    }, [])
+
+    function handleLoadedMetadata() {
+        if (audioRef.current) {
+            setAudioDuration(audioRef.current.duration)
         }
     }
 
+    function handleTimeUpdate() {
+        if (audioRef.current) {
+            setCurrentTime(audioRef.current.currentTime)
+        }
+    }
+
+    function togglePlay() {
+        if (audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause()
+            } else {
+                audioRef.current.play().catch(err => {
+                    console.error('Play error:', err)
+                    setAudioError('Could not play audio')
+                })
+            }
+            setIsPlaying(!isPlaying)
+        }
+    }
+
+    function handleFeatureClick(featureKey: string) {
+        router.push(`/morning/features/${featureKey}`)
+    }
+
+    const progressPercent = audioDuration > 0 ? (currentTime / audioDuration) * 100 : 0
+
     return (
         <div className="w-full max-w-md text-center">
-            {/* Log page visit client-side */}
-            <EveningPageLogger pageKey="v1-e-14" />
-
             {/* Page counter */}
             <p className="text-gray-600 text-sm mb-16">14 / 14</p>
 
@@ -101,14 +142,93 @@ export default async function EveningPage14() {
                 Great job, {userName}.
             </h1>
 
-            <p className="text-gray-400 mb-16">
+            <p className="text-gray-400 mb-8">
                 See you tomorrow, right after awaking.
             </p>
 
-            {/* Hint text instead of button */}
-            <p className="text-gray-500 text-sm">
-                You can close this app now and return tomorrow morning. Enjoy your evening!
+            {/* Hint text */}
+            <p className="text-gray-500 text-sm mb-12">
+                The most important thing is done. Enjoy the rest of your day!
             </p>
+
+            {/* Audio player */}
+            <div className="bg-white/5 border border-white/20 rounded-lg p-6 mb-8">
+                <p className="text-gray-400 text-sm mb-4">Your audio (available anytime)</p>
+
+                {/* Audio element */}
+                {audioUrl && (
+                    <audio
+                        ref={audioRef}
+                        src={audioUrl}
+                        preload="metadata"
+                        onLoadedMetadata={handleLoadedMetadata}
+                        onTimeUpdate={handleTimeUpdate}
+                        onEnded={() => setIsPlaying(false)}
+                        onError={() => setAudioError('Could not load audio')}
+                    />
+                )}
+
+                {audioError ? (
+                    <p className="text-red-400 text-sm">{audioError}</p>
+                ) : (
+                    <>
+                        {/* Play/Pause button */}
+                        <button
+                            onClick={togglePlay}
+                            disabled={!audioUrl || audioDuration === 0}
+                            className="w-14 h-14 rounded-full border-2 border-white flex items-center justify-center mb-4 mx-auto hover:bg-white/10 transition-colors disabled:opacity-50"
+                        >
+                            {isPlaying ? (
+                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <rect x="6" y="4" width="4" height="16" />
+                                    <rect x="14" y="4" width="4" height="16" />
+                                </svg>
+                            ) : (
+                                <svg className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                    <polygon points="5,3 19,12 5,21" />
+                                </svg>
+                            )}
+                        </button>
+
+                        {/* Progress bar */}
+                        <div className="w-full bg-white/20 rounded-full h-1 mb-2">
+                            <div
+                                className="bg-white h-1 rounded-full transition-all duration-300"
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
+
+                        {/* Time display */}
+                        <div className="flex justify-between text-gray-500 text-xs">
+                            <span>{formatTime(currentTime)}</span>
+                            <span>{formatTime(audioDuration)}</span>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* Feature links */}
+            <div className="mb-8">
+                <p className="text-gray-400 text-sm mb-4">Explore more:</p>
+                <div className="space-y-2">
+                    {FEATURE_LINKS.map((link) => (
+                        <button
+                            key={link.key}
+                            onClick={() => handleFeatureClick(link.key)}
+                            className="w-full text-left px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-sm transition-colors"
+                        >
+                            → {link.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
     )
+}
+
+function formatTime(seconds: number): string {
+    if (!seconds || isNaN(seconds)) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs.toString().padStart(2, '0')}`
 }

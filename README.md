@@ -686,6 +686,31 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2026-01-03: Simplified Evening Flow ✅
+
+**Evening flow now happens immediately after morning flow (not in the evening).**
+
+#### What Changed
+
+- Evening page 14 now includes morning page 22 content below its original content
+- Order on final page: completion message → "close this app" → horizontal line → audio player → feature links
+
+#### Key File
+
+| File | Change |
+|------|--------|
+| `src/app/(app)/evening/14/page.tsx` | Combined evening + morning final content. Converted from server to client component for audio player support. |
+
+#### Flow After Change
+
+```
+Morning sequence → Evening sequence → Evening page 14 (combined final page)
+```
+
+Users see everything in one session, ending with audio player and feature links.
+
+---
+
 ### 2026-01-03: Bottom Tab Navigation ✅
 
 **Added TikTok/YouTube-style bottom tab bar for authenticated users.**
