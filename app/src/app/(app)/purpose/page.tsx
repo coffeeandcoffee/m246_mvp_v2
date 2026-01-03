@@ -38,19 +38,20 @@ export default function PurposePage() {
                     The only insurance against failure is focussed persistence.
                 </p>
 
-                {/* Info Box */}
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-5 mb-10">
+                {/* 3-Step Guide */}
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 mb-10 space-y-3">
+                    <h2 className="text-white font-semibold text-sm mb-4">How to get the most out of M246</h2>
                     <div className="flex gap-3">
-                        {/* Info icon in circle - smaller */}
-                        <div className="flex-shrink-0 pt-0.5">
-                            <div className="w-4 h-4 rounded-full border border-blue-400 flex items-center justify-center">
-                                <span className="text-blue-400 font-medium text-[10px]">i</span>
-                            </div>
-                        </div>
-                        {/* Info text */}
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                            Simply do the steps in "Next Actions" tab, and watch your dream come true over the next few years. Track your progress of the 4 Essential Components of Persistence below.
-                        </p>
+                        <span className="text-gray-400 font-medium">1.</span>
+                        <p className="text-gray-200 text-sm">Visit "Next Actions" tab every day to take the proven, guided steps.</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <span className="text-gray-400 font-medium">2.</span>
+                        <p className="text-gray-200 text-sm">Watch your dream come true over the next few years.</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <span className="text-gray-400 font-medium">3.</span>
+                        <p className="text-gray-200 text-sm">Monitor current progress below.</p>
                     </div>
                 </div>
 

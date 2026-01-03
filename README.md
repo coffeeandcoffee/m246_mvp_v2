@@ -693,6 +693,28 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2026-01-03: Strategy Tab 3-Step Guide ✅
+
+**Strategy tab now shows a 3-step guide box explaining how to use M246.**
+
+#### File Changed
+
+| File | Change |
+|------|--------|
+| `src/app/(app)/purpose/page.tsx` | Replaced info box with 3-step guide in dark glass style |
+
+#### Content
+
+The Strategy tab (`/purpose`) now displays:
+1. **Headline**: "We Guide You to Your Dream."
+2. **3-Step Guide Box** (dark glass style):
+   - Visit "Next Actions" tab every day to take the proven, guided steps.
+   - Watch your dream come true over the next few years.
+   - Monitor current progress below.
+3. **4 persistence components** (each with "Coming Soon" label)
+
+---
+
 ### 2026-01-03: Audio Player Seek & Tab Bar Spacing ✅
 
 **Audio progress bar is now interactive (click/tap to seek). Tab bar has extra bottom padding.**
