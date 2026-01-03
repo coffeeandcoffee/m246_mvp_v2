@@ -105,7 +105,7 @@ export default function TabBar() {
         },
         {
             id: 'action',
-            label: 'Action',
+            label: 'Next Action',
             path: '/router',
             icon: <ActionIcon active={activeTab === 'action'} />
         },

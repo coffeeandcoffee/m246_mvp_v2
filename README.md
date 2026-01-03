@@ -605,24 +605,25 @@ Track per UX version + date period:
 ├── public                              # Static assets (icons, manifest)
 ├── src
 │   ├── app
-│   │   ├── (app)                       # Route group for authenticated pages
+│   │   ├── (app)                       # Authenticated pages route group
 │   │   │   ├── dayoff                  # Day off page + actions
 │   │   │   ├── evening                 # Evening sequence (14 pages)
 │   │   │   ├── morning                 # Morning sequence (22 pages)
 │   │   │   │   ├── backfill            # Backfill evening (9 pages)
 │   │   │   │   └── features            # Feature placeholder pages
 │   │   │   ├── onboarding              # Onboarding (12 pages)
-│   │   │   ├── purpose                 # Strategy tab placeholder [NEW]
+│   │   │   ├── purpose                 # Strategy tab - 4 persistence components
 │   │   │   ├── router                  # Central routing page
-│   │   │   ├── settings                # Settings tab placeholder [NEW]
-│   │   │   └── layout.tsx              # Auth check + TabBar wrapper
+│   │   │   ├── settings                # Settings tab placeholder
+│   │   │   └── layout.tsx              # Auth check + TabBar + HelpButton
 │   │   ├── api                         # API endpoints
 │   │   ├── auth                        # Auth actions
 │   │   ├── login, signup               # Auth pages (no TabBar)
 │   │   ├── pwa                         # PWA detection page
 │   │   └── globals.css, layout.tsx, page.tsx
 │   ├── components
-│   │   └── TabBar.tsx                  # Bottom tab navigation [NEW]
+│   │   ├── HelpButton.tsx              # Global help button (top-right)
+│   │   └── TabBar.tsx                  # Bottom tab navigation
 │   ├── lib
 │   │   ├── routing.ts                  # Central routing logic
 │   │   └── useRoutingPoll.ts           # 10s polling hook
@@ -685,6 +686,30 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2026-01-03: Purpose Tab & Tab Rename ✅
+
+**Purpose tab now shows the 4 Essential Components of Persistence. Action tab renamed to "Next Action".**
+
+#### Content Structure
+
+1. **Headline**: "We Guide You to Your Dream."
+2. **Quote** (gray): "The only insurance against failure is focussed persistence."
+3. **Info box** with small "i" icon explaining the system
+4. **4 numbered cards** — each component with "Coming Soon" label:
+   - Definite purpose backed by burning desire
+   - Definite plan expressed in continuous action
+   - Mind closed against negative influences
+   - Friendly alliance with encouraging persons
+
+#### Key Files
+
+| File | Change |
+|------|--------|
+| `src/app/(app)/purpose/page.tsx` | Full redesign with 4 components |
+| `src/components/TabBar.tsx` | "Action" → "Next Action" |
+
+---
 
 ### 2026-01-03: Global Help Button ✅
 

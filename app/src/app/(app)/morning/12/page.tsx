@@ -154,7 +154,7 @@ export default function MorningPage12() {
 
             {/* Main content */}
             <h1 className="text-xl font-medium text-white mb-8 leading-relaxed">
-                Listen to your audio.
+                Listen to your Daily Mind Hack.
             </h1>
 
             {/* Audio element */}

@@ -64,7 +64,7 @@ export default function MorningPage13() {
             </h1>
 
             <p className="text-gray-400 mb-16">
-                Your mind is now in a better state.
+                Your subconscious mind is now in a better state aligned with your goals.
             </p>
 
             {/* Continue button */}
