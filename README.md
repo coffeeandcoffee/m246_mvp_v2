@@ -616,7 +616,7 @@ Track per UX version + date period:
 │   │   │   ├── evening                 # Evening sequence (14 pages)
 │   │   │   ├── feature                 # Feature placeholder pages
 │   │   │   ├── morning                 # Morning sequence (22 pages)
-│   │   │   ├── onboarding              # Onboarding (12 pages)
+│   │   │   ├── onboarding              # Onboarding (19 pages: 7 intro + 12 original)
 │   │   │   ├── purpose                 # Strategy tab - 4 persistence components
 │   │   │   ├── router                  # Central routing page
 │   │   │   ├── settings                # Settings tab with logout
@@ -692,6 +692,59 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2026-01-04: Onboarding Intro Pages ✅
+
+**Added 7 new intro pages before existing onboarding flow.**
+
+#### Complete Onboarding Flow (19 pages total)
+
+```
+UX_v3_o_1 → UX_v3_o_2 → ... → UX_v3_o_7 → /onboarding/1 → ... → /onboarding/12 → /evening/1
+```
+
+| New Page | Text |
+|----------|------|
+| UX_v3_o_1 | Growing a Business Requires Big Confidence, Calmness and Clarity of Mind. |
+| UX_v3_o_2 | Not Just One Time. But Every Day. |
+| UX_v3_o_3 | We Analyzed the Behaviours of Successful Serial Entrepreneurs... |
+| UX_v3_o_4 | Most of All: They Act Every Day. No Matter the Circumstances. |
+| UX_v3_o_5 | We Guide You There. No Overwhelm. Just Simple Daily Steps. |
+| UX_v3_o_6 | You Will Maintain a Joyful and Calm Attitude... |
+| UX_v3_o_7 | Only That Way You Can Successfully Scale Your Business. |
+
+#### Key Files Changed
+
+| File | Change |
+|------|--------|
+| `onboarding/UX_v3_o_*/page.tsx` | 7 new text-only pages with Next button |
+| `auth/actions.ts` (L84) | Signup redirect: `/onboarding/1` → `/onboarding/UX_v3_o_1` |
+| `routing.ts` (L69, L74) | Router redirect: `/onboarding/1` → `/onboarding/UX_v3_o_1` |
+| `routing.ts` (L111-117) | Fixed onboarding day order: check `never_completed_evening` BEFORE `isOnboardingDay` |
+
+#### Critical Learning: Onboarding Entry Points
+
+There are **3 places** that control where new users start onboarding:
+
+1. **`auth/actions.ts:84`** — After successful signup, redirects to first onboarding page
+2. **`routing.ts:69`** — When user has no profile
+3. **`routing.ts:74`** — When user is not onboarded
+
+> [!IMPORTANT]
+> When adding pages before onboarding, update ALL THREE locations or signup will bypass new pages.
+
+#### Critical Learning: Routing Order Matters
+
+The `routing.ts` logic must check conditions in correct order:
+
+```
+1. never_completed_evening → /evening/1  (allows first evening flow)
+2. isOnboardingDay → /evening/14         (only AFTER evening started)
+```
+
+Wrong order caused: onboarding → /evening/14 (skipping entire evening flow)
+
+---
 
 ### 2026-01-04: Strategy Tab Progress Redesign ✅
 

@@ -81,7 +81,7 @@ export async function signup(formData: FormData) {
     }
 
     // Step 7: Success! Redirect to onboarding (first-time users)
-    redirect('/onboarding/1')
+    redirect('/onboarding/UX_v3_o_1')
 }
 
 // ============================================================================

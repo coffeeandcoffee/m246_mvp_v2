@@ -66,12 +66,12 @@ export async function checkRouting(): Promise<RoutingResult> {
         .single()
 
     if (profileError || !profile) {
-        return { redirect: '/onboarding/1', reason: 'no_profile' }
+        return { redirect: '/onboarding/UX_v3_o_1', reason: 'no_profile' }
     }
 
     // Rule: Not onboarded -> onboarding
     if (!profile.onboarded) {
-        return { redirect: '/onboarding/1', reason: 'not_onboarded' }
+        return { redirect: '/onboarding/UX_v3_o_1', reason: 'not_onboarded' }
     }
 
     const timezone = profile.timezone || 'UTC'
@@ -80,12 +80,6 @@ export async function checkRouting(): Promise<RoutingResult> {
     // Check if today is the onboarding day (skip morning redirect on onboarding day)
     const onboardingDate = profile.created_at ? profile.created_at.split('T')[0] : null
     const isOnboardingDay = onboardingDate === logicalToday
-
-    // SPECIAL CASE: On onboarding day, user completed evening during onboarding
-    // They should stay on evening/14 until next day's morning
-    if (isOnboardingDay) {
-        return { redirect: '/evening/14', reason: 'onboarding_day_complete' }
-    }
 
     // Get today's daily_log_id (needed for completion checks)
     const { data: dailyLogId } = await supabase.rpc('get_or_create_daily_log', {
@@ -110,6 +104,13 @@ export async function checkRouting(): Promise<RoutingResult> {
 
     if (!anyEveningPage || anyEveningPage.length === 0) {
         return { redirect: '/evening/1', reason: 'never_completed_evening' }
+    }
+
+    // SPECIAL CASE: On onboarding day, user completed evening during onboarding
+    // They should stay on evening/14 until next day's morning
+    // NOTE: This check comes AFTER never_completed_evening to allow first-time evening flow
+    if (isOnboardingDay) {
+        return { redirect: '/evening/14', reason: 'onboarding_day_complete' }
     }
 
     // Check morning completion for today
