@@ -122,3 +122,8 @@ body {
 .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Hide scrollbar for webkit browsers */
+.overflow-x-auto::-webkit-scrollbar {
+    display: none;
+}

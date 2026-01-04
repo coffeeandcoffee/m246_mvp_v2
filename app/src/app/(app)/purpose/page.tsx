@@ -1,27 +1,47 @@
+'use client'
+
+import { useState } from 'react'
+
 /**
  * PROGRAM PURPOSE PAGE
  * 
- * Explains the 4 components of persistence for business success.
- * Each component shows "Coming Soon" as features are in development.
+ * Explains the 6 components of persistence for business success.
+ * Includes quarterly reflections with year selection (2026-2035).
  */
 
 export default function PurposePage() {
+    const [selectedYear, setSelectedYear] = useState(2026)
+    const years = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035]
     const components = [
         {
             number: 1,
-            text: "A Definite purpose, backed by a burning desire for its fulfillment."
+            text: "Quarterly Personal & Business Reflection.",
+            completed: false
         },
         {
             number: 2,
-            text: "A Definite Plan, expressed in continuous action."
+            text: "Full Awareness of Self and Mode of Operation.",
+            completed: false
         },
         {
             number: 3,
-            text: "A mind closed tightly against all negative and discouraging influences, including negative suggestions of relatives, friends and acquaintances."
+            text: "Definite Purpose Backed by a Burning Desire for its Fulfillment.",
+            completed: false
         },
         {
             number: 4,
-            text: "A friendly alliance with one or more persons who will encourage one to follow through with both plan and purpose."
+            text: "Definite Plan to be Expressed in Continuous Action.",
+            completed: false
+        },
+        {
+            number: 5,
+            text: "Daily System for a Mind Closed Tightly Against All Negative and Discouraging Influences. (including negative suggestions of relatives, friends and acquaintances)",
+            completed: false
+        },
+        {
+            number: 6,
+            text: "Weekly Meetings with a Friendly Alliance of One or More Persons who Encourage You to Follow Through with Both Plan and Purpose.",
+            completed: false
         }
     ]
 
@@ -30,55 +50,122 @@ export default function PurposePage() {
             <div className="w-full max-w-lg mx-auto">
                 {/* Headline */}
                 <h1 className="text-2xl font-semibold text-white text-center mb-3 leading-relaxed">
-                    We Guide You to Your Dream.
+                    Get the Clarity and Confidence to Grow Your Business like a Serial Entrepreneur.
                 </h1>
 
                 {/* Quote below headline */}
                 <p className="text-gray-500 text-sm text-center mb-10">
-                    The only insurance against failure is focussed persistence.
+                    Remove all Barriers. No Overthinking. Just Execution.
                 </p>
 
                 {/* 3-Step Guide */}
                 <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 mb-10 space-y-3">
-                    <h2 className="text-white font-semibold text-sm mb-4">How to get the most out of M246</h2>
+                    <h2 className="text-white font-semibold text-sm mb-4">How to use:</h2>
                     <div className="flex gap-3">
                         <span className="text-gray-400 font-medium">1.</span>
-                        <p className="text-gray-200 text-sm">Visit "Next Actions" tab every day to take the proven, guided steps.</p>
+                        <p className="text-gray-200 text-sm">Open App Every Day to do the Next Action.</p>
                     </div>
                     <div className="flex gap-3">
                         <span className="text-gray-400 font-medium">2.</span>
-                        <p className="text-gray-200 text-sm">Watch your dream come true over the next few years.</p>
+                        <p className="text-gray-200 text-sm">Monitor Progress Below.</p>
                     </div>
                     <div className="flex gap-3">
                         <span className="text-gray-400 font-medium">3.</span>
-                        <p className="text-gray-200 text-sm">Monitor current progress below.</p>
+                        <p className="text-gray-200 text-sm">Watch your business grow.</p>
                     </div>
                 </div>
 
-                {/* The 4 Components */}
-                <div className="space-y-6">
-                    {components.map((component) => (
-                        <div
-                            key={component.number}
-                            className="bg-gray-900/30 border border-gray-800 rounded-xl p-5"
-                        >
-                            {/* Number and text */}
-                            <div className="flex gap-4 mb-3">
-                                <span className="flex-shrink-0 text-gray-500 font-semibold">
-                                    {component.number}.
-                                </span>
-                                <p className="text-white text-sm leading-relaxed">
+                {/* Progress Panel */}
+                <div className="bg-gray-900/30 border border-gray-800 rounded-xl p-5 mt-10">
+                    <p className="text-gray-500 text-sm text-center mb-6">
+                        PROGRESS
+                    </p>
+                    <div className="space-y-4">
+                        {components.map((component, index) => (
+                            <div
+                                key={component.number}
+                                className="flex gap-4 items-center"
+                            >
+                                {/* Circle bullet - green stroke only for first, gray for rest */}
+                                <div className="flex-shrink-0">
+                                    <div
+                                        className={`w-1.5 h-1.5 rounded-full border ${component.completed
+                                            ? 'bg-green-500 border-green-500'
+                                            : index === 0
+                                                ? 'border-green-500'
+                                                : 'border-gray-600'
+                                            }`}
+                                    />
+                                </div>
+                                {/* Text - first item lighter, rest darker */}
+                                <p className={`text-sm leading-relaxed ${index === 0 ? 'text-gray-300' : 'text-gray-600'
+                                    }`}>
                                     {component.text}
                                 </p>
                             </div>
-                            {/* Coming Soon label */}
-                            <div className="ml-6">
-                                <span className="text-xs text-gray-600 uppercase tracking-wider">
-                                    Coming Soon
-                                </span>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Quarterly Reflections Panel */}
+                <div className="bg-gray-900/20 border border-gray-800/50 rounded-xl p-5 mt-6">
+                    <p className="text-gray-500 text-sm text-center mb-4">
+                        QUARTERLY REFLECTIONS
+                    </p>
+
+                    {/* Year Selector - scrollable with fade */}
+                    <div className="relative mb-4">
+                        <div
+                            className="overflow-x-auto"
+                            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+                        >
+                            <div className="flex gap-4 whitespace-nowrap px-2">
+                                {years.map((year) => (
+                                    <span
+                                        key={year}
+                                        onClick={() => setSelectedYear(year)}
+                                        className={`text-sm cursor-pointer ${selectedYear === year
+                                            ? 'text-gray-300'
+                                            : 'text-gray-600 hover:text-gray-400'
+                                            }`}
+                                    >
+                                        {year}
+                                    </span>
+                                ))}
                             </div>
                         </div>
-                    ))}
+                        {/* Fade gradient on right */}
+                        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-900/80 to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Horizontal line below years */}
+                    <hr className="border-gray-800 mb-4" />
+
+                    {/* Q1-Q4 Panels */}
+                    <div className="grid grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map((quarter) => {
+                            // Only Q1 in 2026 is active
+                            const isActive = selectedYear === 2026 && quarter === 1
+                            return (
+                                <div
+                                    key={quarter}
+                                    className={`bg-gray-900/30 border border-gray-800 rounded-xl p-4 flex flex-col items-center justify-center ${!isActive ? 'opacity-50' : ''
+                                        }`}
+                                >
+                                    {/* Circle bullet */}
+                                    <div
+                                        className={`w-1.5 h-1.5 rounded-full border mb-2 ${isActive ? 'border-green-500' : 'border-gray-600'
+                                            }`}
+                                    />
+                                    {/* Quarter label */}
+                                    <span className={`text-sm ${isActive ? 'text-gray-300' : 'text-gray-600'
+                                        }`}>
+                                        Q{quarter}
+                                    </span>
+                                </div>
+                            )
+                        })}
+                    </div>
                 </div>
             </div>
         </div>

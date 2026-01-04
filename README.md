@@ -693,6 +693,12 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2026-01-04: Strategy Tab Progress Redesign ✅
+
+**Progress section redesigned with 6 components, quarterly reflections panel with year selection (2026-2035), and scrollable UI.**
+
+---
+
 ### 2026-01-03: Settings Page Logout ✅
 
 **Settings tab now has logout functionality.**
