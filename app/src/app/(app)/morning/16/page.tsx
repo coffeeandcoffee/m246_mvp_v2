@@ -12,13 +12,35 @@
 import { useState, useEffect } from 'react'
 import { saveMagicTask, logPageVisit } from '../actions'
 
+const checklistItems = [
+    'It is 1 task',
+    'It is usually uncomfortable/hard',
+    'you know, once you complete it, you will feel relief',
+    'It is something you should be doing',
+    'It is something that stresses you out if you don`t do it',
+    'Often times it is cold outreach, sales, content',
+    'It is the single action that if repeated daily directly translates into business growth'
+]
+
 export default function MorningPage16() {
     const [task, setTask] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [visibleItems, setVisibleItems] = useState(0)
 
     useEffect(() => {
         logPageVisit('v1-m-16')
+
+        // Stagger the appearance of each item
+        const itemTimers = checklistItems.map((_, index) => {
+            return setTimeout(() => {
+                setVisibleItems(index + 1)
+            }, 300 + (index * 400)) // Start after 300ms, then 400ms between each
+        })
+
+        return () => {
+            itemTimers.forEach(clearTimeout)
+        }
     }, [])
 
     async function handleSubmit(e: React.FormEvent) {
@@ -47,21 +69,34 @@ export default function MorningPage16() {
     return (
         <div className="w-full max-w-md text-center">
             {/* Page counter */}
-            <p className="text-gray-600 text-sm mb-16">16 / 22</p>
+            <p className="text-gray-600 text-sm mb-16">16 / 18</p>
 
             {/* Main content */}
             <h1 className="text-2xl font-semibold text-white mb-4 leading-relaxed">
                 The Magic Task
             </h1>
 
-            <p className="text-gray-400 mb-8">
-                What is the ONE hard task that, if completed today,<br />
-                would make this day a success?
-            </p>
-
-            <p className="text-gray-400 mb-8">
-                (Stress = is often an indicator that you ignore something you know you should be doing - the magic task.)
-            </p>
+            {/* Animated checklist */}
+            <ul className="space-y-3 mb-8 text-left max-w-sm mx-auto">
+                {checklistItems.map((item, index) => (
+                    <li
+                        key={index}
+                        className={`flex items-start gap-3 transition-all duration-500 ${index < visibleItems
+                            ? 'opacity-100 translate-x-0'
+                            : 'opacity-0 -translate-x-4'
+                            }`}
+                    >
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full border border-white/30 flex items-center justify-center mt-0.5">
+                            <span
+                                className={`w-2 h-2 rounded-full bg-white transition-transform duration-300 ${index < visibleItems ? 'scale-100' : 'scale-0'
+                                    }`}
+                                style={{ transitionDelay: `${150}ms` }}
+                            />
+                        </span>
+                        <span className="text-gray-300 text-sm">{item}</span>
+                    </li>
+                ))}
+            </ul>
 
             {/* Task input */}
             <form onSubmit={handleSubmit} className="mb-6">

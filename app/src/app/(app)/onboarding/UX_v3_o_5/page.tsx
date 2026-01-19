@@ -14,8 +14,12 @@ export default function OnboardingPageUXv3o5() {
     return (
         <div className="w-full max-w-sm text-center">
             <h1 className="text-2xl font-semibold text-white mb-12 leading-relaxed">
-                We Guide You There.<br /><br />No Overwhelm.<br /><br />Just Simple Daily Steps.<br /><br />Success will Follow.
+                We Guide You There. Promise.
             </h1>
+
+            <p className="text-gray-400 mb-12 leading-relaxed">
+                No overwhelm. Just simple daily steps. Success will follow.
+            </p>
 
             <button
                 onClick={() => router.push('/onboarding/UX_v3_o_6')}

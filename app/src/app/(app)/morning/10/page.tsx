@@ -35,7 +35,7 @@ export default function MorningPage10() {
 
             {/* Main content */}
             <h1 className="text-xl font-medium text-white mb-16 leading-relaxed">
-                The audio you're about to hear will anchor new patterns.
+                The audio you're about to hear will anchor your new patterns.
             </h1>
 
             {/* Continue button */}

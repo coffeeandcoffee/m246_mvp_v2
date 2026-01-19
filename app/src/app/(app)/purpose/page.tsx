@@ -1,17 +1,21 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { getQuarterInfo } from '@/lib/quarterlyQuestions'
 
 /**
  * PROGRAM PURPOSE PAGE
  * 
  * Explains the 6 components of persistence for business success.
- * Includes quarterly reflections with year selection (2026-2035).
+ * Includes quarterly reflections with year selection (2025-2035).
  */
 
 export default function PurposePage() {
-    const [selectedYear, setSelectedYear] = useState(2026)
-    const years = [2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035]
+    const router = useRouter()
+    const [selectedYear, setSelectedYear] = useState(2025)
+    const years = [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035]
+
     const components = [
         {
             number: 1,
@@ -44,6 +48,43 @@ export default function PurposePage() {
             completed: false
         }
     ]
+
+    // Find current active quarter (most recent one that's active)
+    const findActiveQuarter = () => {
+        const now = new Date()
+        // Check from most recent to oldest
+        for (let y = 2035; y >= 2025; y--) {
+            for (let q = 4; q >= 1; q--) {
+                const info = getQuarterInfo(y, q, now)
+                if (info.isActive) {
+                    return { year: y, quarter: q }
+                }
+            }
+        }
+        return null
+    }
+
+    const activeQuarterData = findActiveQuarter()
+
+    // Find the next quarter after the active one (for "available" text)
+    const getNextQuarter = (year: number, quarter: number) => {
+        if (quarter < 4) {
+            return { year, quarter: quarter + 1 }
+        }
+        return { year: year + 1, quarter: 1 }
+    }
+
+    const nextQuarterData = activeQuarterData
+        ? getNextQuarter(activeQuarterData.year, activeQuarterData.quarter)
+        : null
+
+    // Handle quarter click - navigate to report page
+    const handleQuarterClick = (year: number, quarter: number) => {
+        const info = getQuarterInfo(year, quarter)
+        if (info.isActive) {
+            router.push(`/purpose/report?year=${year}&quarter=${quarter}`)
+        }
+    }
 
     return (
         <div className="min-h-screen bg-black px-6 py-12 pb-32">
@@ -108,7 +149,7 @@ export default function PurposePage() {
                 </div>
 
                 {/* Quarterly Reflections Panel */}
-                <div className="bg-gray-900/20 border border-gray-800/50 rounded-xl p-5 mt-6">
+                <div id="reflections" className="bg-gray-900/20 border border-gray-800/50 rounded-xl p-5 mt-6">
                     <p className="text-gray-500 text-sm text-center mb-4">
                         QUARTERLY REFLECTIONS
                     </p>
@@ -144,24 +185,33 @@ export default function PurposePage() {
                     {/* Q1-Q4 Panels */}
                     <div className="grid grid-cols-4 gap-3">
                         {[1, 2, 3, 4].map((quarter) => {
-                            // Only Q1 in 2026 is active
-                            const isActive = selectedYear === 2026 && quarter === 1
+                            const quarterInfo = getQuarterInfo(selectedYear, quarter)
+                            const isCurrentActive = activeQuarterData?.year === selectedYear && activeQuarterData?.quarter === quarter
+                            const isNextQuarter = nextQuarterData?.year === selectedYear && nextQuarterData?.quarter === quarter
+
                             return (
                                 <div
                                     key={quarter}
-                                    className={`bg-gray-900/30 border border-gray-800 rounded-xl p-4 flex flex-col items-center justify-center ${!isActive ? 'opacity-50' : ''
+                                    onClick={() => handleQuarterClick(selectedYear, quarter)}
+                                    className={`bg-gray-900/30 border border-gray-800 rounded-xl p-4 flex flex-col items-center justify-center min-h-[80px] ${quarterInfo.isActive ? 'cursor-pointer hover:bg-gray-800/50' : 'opacity-50'
                                         }`}
                                 >
                                     {/* Circle bullet */}
                                     <div
-                                        className={`w-1.5 h-1.5 rounded-full border mb-2 ${isActive ? 'border-green-500' : 'border-gray-600'
+                                        className={`w-1.5 h-1.5 rounded-full border mb-2 ${isCurrentActive ? 'border-green-500' : 'border-gray-600'
                                             }`}
                                     />
                                     {/* Quarter label */}
-                                    <span className={`text-sm ${isActive ? 'text-gray-300' : 'text-gray-600'
+                                    <span className={`text-sm ${isCurrentActive ? 'text-gray-300' : 'text-gray-600'
                                         }`}>
                                         Q{quarter}
                                     </span>
+                                    {/* "Available" text for next quarter */}
+                                    {isNextQuarter && !quarterInfo.isActive && (
+                                        <span className="text-[10px] text-gray-600 mt-1 text-center">
+                                            available {quarterInfo.availableText}
+                                        </span>
+                                    )}
                                 </div>
                             )
                         })}

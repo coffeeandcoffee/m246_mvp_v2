@@ -3,12 +3,15 @@
 import { usePathname, useRouter } from 'next/navigation'
 
 /**
- * BOTTOM TAB BAR
+ * RESPONSIVE TAB BAR / SIDEBAR
  * 
- * TikTok/YouTube-style bottom navigation with 3 tabs:
- * - Strategy (left) - compass icon
- * - Action (center, primary) - lightning icon
- * - Settings (right) - gear icon
+ * Mobile: Bottom navigation bar (TikTok/YouTube-style)
+ * Desktop (md+): Left sidebar navigation
+ * 
+ * Tabs:
+ * - Strategy - compass icon
+ * - Action (primary) - lightning icon
+ * - Settings - gear icon
  */
 
 type TabId = 'strategy' | 'action' | 'settings'
@@ -99,13 +102,13 @@ export default function TabBar() {
     const tabs: Tab[] = [
         {
             id: 'strategy',
-            label: 'Strategy',
+            label: 'Where Do We Go?',
             path: '/purpose',
             icon: <StrategyIcon active={activeTab === 'strategy'} />
         },
         {
             id: 'action',
-            label: 'Next Action',
+            label: 'Whats Next Today?',
             path: '/router',
             icon: <ActionIcon active={activeTab === 'action'} />
         },
@@ -122,8 +125,15 @@ export default function TabBar() {
     }
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/10 z-40 safe-area-bottom pb-3">
-            <div className="flex justify-around items-center h-16 max-w-md mx-auto">
+        <nav className="
+            fixed z-40 bg-black border-white/10
+            bottom-0 left-0 right-0 border-t safe-area-bottom pb-3
+            md:top-0 md:right-auto md:w-64 md:border-t-0 md:border-r md:pb-0
+        ">
+            <div className="
+                flex justify-around items-center h-16 max-w-md mx-auto
+                md:flex-col md:justify-start md:items-stretch md:h-full md:pt-8 md:gap-2 md:max-w-none md:px-4
+            ">
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.id
                     const isCenter = tab.id === 'action'
@@ -132,13 +142,15 @@ export default function TabBar() {
                         <button
                             key={tab.id}
                             onClick={() => handleTabClick(tab)}
-                            className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${isCenter ? 'scale-110' : ''
-                                }`}
+                            className={`
+                                flex flex-col items-center justify-center flex-1 h-full transition-colors
+                                md:flex-row md:flex-none md:justify-start md:items-center md:w-full md:h-auto md:py-3 md:px-4 md:gap-3 md:rounded-lg md:hover:bg-white/5
+                                ${isCenter ? 'scale-110 md:scale-100 md:order-first' : ''}
+                            `}
                         >
-                            {tab.icon}
+                            <span className="md:shrink-0">{tab.icon}</span>
                             <span
-                                className={`text-xs mt-1 ${isActive ? 'text-white' : 'text-gray-500'
-                                    }`}
+                                className={`text-xs mt-1 md:mt-0 md:text-sm md:text-left md:whitespace-nowrap ${isActive ? 'text-white' : 'text-gray-500'}`}
                             >
                                 {tab.label}
                             </span>

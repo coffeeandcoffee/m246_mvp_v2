@@ -14,8 +14,12 @@ export default function OnboardingPageUXv3o3() {
     return (
         <div className="w-full max-w-sm text-center">
             <h1 className="text-2xl font-semibold text-white mb-12 leading-relaxed">
-                We Analyzed the Behaviours of Successful Serial Entrepreneurs.<br /><br />Their Systems are Simple, Reliable and Easy to Follow.<br /><br />You Just Need to Do It.
+                We Analyzed Successful Serial Entrepreneurs.
             </h1>
+            <p className="text-gray-400 mb-12 leading-relaxed">
+                Their Neuroscientific profile is caused by simple daily actions anyone can do! We make it super easy for you to build the same brain as a Serial Entrepreneur by guiding you and always telling you the next step to take.
+            </p>
+
 
             <button
                 onClick={() => router.push('/onboarding/UX_v3_o_4')}

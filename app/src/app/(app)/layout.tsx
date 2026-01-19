@@ -32,8 +32,8 @@ export default async function AppLayout({
             {/* Global help button - fixed top-right */}
             <HelpButton />
 
-            {/* Main content - add padding at bottom for TabBar */}
-            <div className="pb-16">
+            {/* Main content - responsive padding for TabBar/Sidebar */}
+            <div className="pb-16 md:pb-0 md:pl-64">
                 {children}
             </div>
 

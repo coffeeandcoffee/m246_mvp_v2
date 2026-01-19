@@ -76,6 +76,19 @@ A Next.js 16 application with Supabase authentication, deployed to https://membe
 
 ---
 
+# On SSH Server details and recommended actions:
+
+- lives at: /home/lederer/mvp2
+- calc deploy size on server: du -sh /home/lederer/mvp2
+- runs via pm2.
+- node_modules exists, therefore we have a full-source deploy, and size can grow over time via: rebuilds, dependency changes, cache, etc.
+- recommended actions, as PM2 logs will grow:
+    • Check: du -sh ~/.pm2/logs
+    • Safe Cleanup: pm2 flush
+    • Optional log rotation (recommended): pm2 install pm2-logrotate
+
+---
+
 # Product Vision (v2025-12-13)
 
 > **Core Mission**: Help entrepreneurs increase their "Execution Flow Days" — days of confident, doubt-free, focused execution — through daily structured sequences and behavioral tracking.
@@ -602,42 +615,50 @@ Track per UX version + date period:
 
 ```
 .
-├── public
-│   ├── apple-touch-icon.png
-│   ├── favicon.ico
-│   ├── icon-192x192.png
-│   ├── icon-512x512.png
-│   ├── logo.png
-│   └── manifest.json
-├── src
-│   ├── app
-│   │   ├── (app)                       # Authenticated pages route group
-│   │   │   ├── dayoff                  # Day off page + actions
-│   │   │   ├── evening                 # Evening sequence (14 pages)
-│   │   │   ├── feature                 # Feature placeholder pages
-│   │   │   ├── morning                 # Morning sequence (22 pages)
-│   │   │   ├── onboarding              # Onboarding (19 pages: 7 intro + 12 original)
-│   │   │   ├── purpose                 # Strategy tab - 4 persistence components
-│   │   │   ├── router                  # Central routing page
-│   │   │   ├── settings                # Settings tab with logout
-│   │   │   ├── waiting                 # Waiting page
-│   │   │   └── layout.tsx              # Auth check + TabBar + HelpButton
-│   │   ├── api                         # API endpoints
-│   │   ├── auth                        # Auth actions (signup, login, signout)
-│   │   ├── dashboard, login, signup    # Auth pages (no TabBar)
-│   │   └── pwa                         # PWA detection page
-│   ├── components
-│   │   ├── HelpButton.tsx              # Global help button (top-right)
-│   │   └── TabBar.tsx                  # Bottom tab navigation
-│   ├── lib
-│   │   ├── audio.ts                    # User-specific audio fetching
-│   │   ├── routing.ts                  # Central routing logic
-│   │   └── useRoutingPoll.ts           # 10s polling hook
-│   ├── types/database.ts               # Supabase types
-│   └── utils/supabase                  # Supabase client utilities
-├── supabase/migrations                 # 14 migration files
-├── deploy.sh                           # Deployment script
-└── package.json
+├── app
+│   ├── public
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon.ico
+│   │   ├── icon-192x192.png
+│   │   ├── icon-512x512.png
+│   │   ├── logo.png
+│   │   └── manifest.json
+│   ├── src
+│   │   ├── app
+│   │   │   ├── (app)              # Authenticated routes (TabBar visible)
+│   │   │   ├── api
+│   │   │   ├── auth
+│   │   │   ├── dashboard
+│   │   │   ├── login
+│   │   │   ├── pwa
+│   │   │   ├── signup
+│   │   │   ├── actions.ts
+│   │   │   ├── globals.css
+│   │   │   ├── layout.tsx
+│   │   │   └── page.tsx
+│   │   ├── components
+│   │   │   ├── sequences
+│   │   │   ├── ui
+│   │   │   ├── HelpButton.tsx
+│   │   │   └── TabBar.tsx          # Responsive: sidebar on desktop, bottom tabs on mobile
+│   │   ├── lib
+│   │   │   ├── hooks
+│   │   │   ├── sequences
+│   │   │   ├── audio.ts
+│   │   │   ├── quarterlyQuestions.ts
+│   │   │   ├── routing.ts
+│   │   │   └── useRoutingPoll.ts
+│   │   ├── types
+│   │   │   └── database.ts
+│   │   ├── utils
+│   │   │   └── supabase
+│   │   └── middleware.ts
+│   ├── supabase
+│   │   └── migrations
+│   ├── deploy.sh
+│   ├── package.json
+│   └── tsconfig.json
+└── README.md
 ```
 
 ## Environment Variables
@@ -692,6 +713,86 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2026-01-19: Responsive Desktop Sidebar Navigation ✅
+
+**Navigation now shows as left sidebar on desktop, bottom tabs on mobile.**
+
+#### Layout Behavior
+
+| Breakpoint | Navigation Style |
+|------------|------------------|
+| Mobile (<768px) | Bottom tab bar (unchanged) |
+| Desktop (≥768px) | Left sidebar (256px wide) |
+
+#### Tab Labels Updated
+
+| Old Name | New Name |
+|----------|----------|
+| Next Action | Whats Next Today? |
+| Strategy | Where Do We Go? |
+
+#### Desktop Sidebar Order
+
+1. Whats Next Today? (first on desktop, center on mobile)
+2. Where Do We Go?
+3. Settings
+
+#### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/components/TabBar.tsx` | Responsive layout: `md:w-64`, `md:flex-row`, `md:order-first` for action tab |
+| `src/app/(app)/layout.tsx` | Responsive padding: `pb-16 md:pb-0 md:pl-64` |
+
+---
+
+### 2026-01-12: Quarterly Reports Feature ✅
+
+**Users can now view and edit quarterly self-reflection reports on the Strategy tab.**
+
+#### How It Works
+
+- **27 questions** defined in `src/lib/quarterlyQuestions.ts`
+- Answers stored per user per quarter in `quarterly_reports` table (JSONB by index)
+- **Active quarter** = green dot, clickable → opens full report page
+- **Editable window** = 3rd month of quarter + 1st month of next quarter
+- Auto-save on edit + manual Save button
+
+#### Date Logic (Example)
+
+| Quarter | Active From | Editable Until |
+|---------|-------------|----------------|
+| 2025 Q4 | Dec 1, 2025 | Jan 31, 2026 |
+| 2026 Q1 | Mar 1, 2026 | Apr 30, 2026 |
+
+#### Files Added/Changed
+
+| File | Purpose |
+|------|---------|
+| `src/lib/quarterlyQuestions.ts` | 27 questions + `getQuarterInfo()` date logic |
+| `src/app/(app)/purpose/page.tsx` | Updated: year selector starts 2025, date-based activation |
+| `src/app/(app)/purpose/report/page.tsx` | New: full report page with editable/readonly mode |
+| `src/app/(app)/purpose/report/actions.ts` | New: `getQuarterlyReport()`, `saveQuarterlyReport()` |
+| `supabase/migrations/00015_create_quarterly_reports.sql` | New: table + RLS policies |
+
+#### Manual Data Entry (SQL)
+
+```sql
+-- Get user_id
+SELECT user_id FROM user_profiles WHERE name = 'UserName';
+
+-- Insert answers (use $$ for multi-line text)
+INSERT INTO quarterly_reports (user_id, year, quarter, answers)
+VALUES ('UUID', 2025, 4, '{"0": "answer1", "1": "answer2"}'::jsonb);
+
+-- Update existing
+UPDATE quarterly_reports
+SET answers = answers || '{"2": "new answer"}'::jsonb
+WHERE user_id = 'UUID' AND year = 2025 AND quarter = 4;
+```
+
+---
 
 ### 2026-01-04: Onboarding Intro Pages ✅
 

@@ -16,8 +16,12 @@ export default function OnboardingPageUXv3o7() {
     return (
         <div className="w-full max-w-sm text-center">
             <h1 className="text-2xl font-semibold text-white mb-12 leading-relaxed">
-                Only That Way You Can Successfully Scale Your Business.
+                Shape Your Mind and Reality Will Follow.
             </h1>
+
+            <p className="text-gray-400 mb-12 leading-relaxed">
+                Only with the right neurological profile you can successfully scale your business. We help you remove all barriers and make your success inevitable. All you need to do are the Daily Actions in this app. Thats it.
+            </p>
 
             <button
                 onClick={() => router.push('/onboarding/1')}

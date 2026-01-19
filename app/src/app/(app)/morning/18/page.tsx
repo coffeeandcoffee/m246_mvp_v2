@@ -4,7 +4,7 @@
  * "Step #3 = DONE" with personalized compliment
  * Shows user's name and 3/3 progress
  * 
- * Next → page 19
+ * Next → evening/2 (simplified flow - skips morning 19-22 and evening 1)
  */
 
 'use client'
@@ -31,13 +31,13 @@ export default function MorningPage18() {
 
     function handleContinue() {
         setLoading(true)
-        router.push('/morning/19')
+        router.push('/evening/2')
     }
 
     return (
         <div className="w-full max-w-md text-center">
             {/* Page counter */}
-            <p className="text-gray-600 text-sm mb-16">18 / 22</p>
+            <p className="text-gray-600 text-sm mb-16">18 / 18</p>
 
             {/* Progress indicator - all complete */}
             <div className="flex justify-center gap-3 mb-12">

@@ -145,12 +145,15 @@ export default function MorningPage12() {
     return (
         <div className="w-full max-w-md text-center">
             {/* Page counter */}
-            <p className="text-gray-600 text-sm mb-16">12 / 22</p>
+            <p className="text-gray-600 text-sm mb-16">12 / 18</p>
 
             {/* Main content */}
             <h1 className="text-xl font-medium text-white mb-8 leading-relaxed">
-                Listen to your Daily Mind Hack.
+                Listen to Your Personalized Mind Conditioning Audio Now.
             </h1>
+
+            {/* Label */}
+            <p className="text-gray-500 text-sm mb-6">This is the Reality-Defining Neuropathway Shaping Process for today. Relax, be open minded to new solutions that may come to you. Recieve the confidence boost you deserve, and translate it into immediate action in the next step.</p>
 
             {/* Audio element */}
             {audioUrl && (
@@ -223,16 +226,6 @@ export default function MorningPage12() {
                 )}
             </div>
 
-            {/* Unlock status - always show countdown */}
-            {!canProceed && (
-                <p className="text-gray-500 text-sm mb-6">
-                    {audioDuration > 0
-                        ? `Next available in ${timeRemaining}s`
-                        : 'Waiting for audio to load...'
-                    }
-                </p>
-            )}
-
             {/* Continue button */}
             <button
                 onClick={handleContinue}
@@ -252,4 +245,3 @@ function formatTime(seconds: number): string {
     const secs = Math.floor(seconds % 60)
     return `${mins}:${secs.toString().padStart(2, '0')}`
 }
-

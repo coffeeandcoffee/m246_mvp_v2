@@ -122,7 +122,7 @@ export async function checkRouting(): Promise<RoutingResult> {
         .like('page_key', 'v1-m-%')
 
     const morningStarted = morningPages && morningPages.length > 0
-    const morningComplete = morningPages?.some(p => p.page_key === 'v1-m-22')
+    const morningComplete = morningPages?.some(p => p.page_key === 'v1-m-18')
 
     // Check evening completion for today  
     const { data: eveningPages } = await supabase
@@ -189,7 +189,20 @@ export async function checkRouting(): Promise<RoutingResult> {
             return { redirect: '/morning/1', reason: 'morning_not_started' }
         }
         if (morningComplete) {
-            return { redirect: '/morning/22', reason: 'morning_complete_waiting' }
+            // Morning complete - now check evening status (simplified flow goes directly to evening)
+            if (eveningComplete) {
+                return { redirect: '/evening/14', reason: 'morning_and_evening_complete' }
+            }
+            if (eveningStarted) {
+                // Evening in progress - resume at last visited page
+                const lastEveningPage = eveningPages?.reduce((max, p) => {
+                    const num = parseInt(p.page_key.replace('v1-e-', ''))
+                    return num > max ? num : max
+                }, 0) || 2
+                return { redirect: `/evening/${lastEveningPage}`, reason: 'evening_in_progress_after_morning' }
+            }
+            // Morning done but evening not started - go to evening/2 (simplified flow skips evening/1)
+            return { redirect: '/evening/2', reason: 'morning_complete_start_evening' }
         }
         // Morning in progress - resume at last visited page
         const lastMorningPage = morningPages?.reduce((max, p) => {

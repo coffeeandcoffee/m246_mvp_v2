@@ -17,8 +17,12 @@ export default function OnboardingPageUXv3o1() {
                 Growing a Business Requires Big Confidence, Calmness and Clarity of Mind.
             </h1>
 
+            <p className="text-gray-400 mb-12 leading-relaxed">
+                Our team of Neuroscientists actively investigates this phenomenon so you can get this same brain profile that leads to business success.
+            </p>
+
             <button
-                onClick={() => router.push('/onboarding/UX_v3_o_2')}
+                onClick={() => router.push('/onboarding/UX_v3_o_3')}
                 className="btn-primary"
             >
                 Next

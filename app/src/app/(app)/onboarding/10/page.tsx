@@ -56,7 +56,7 @@ export default function OnboardingPage10() {
             {/* Main content */}
             <h1 className="text-2xl font-semibold text-white mb-6 leading-relaxed">
                 Successful entrepreneurs achieve up to<br />
-                <span className="text-4xl font-bold">20 EFDs</span><br />
+                <span className="text-4xl font-bold">15 EFDs</span><br />
                 per month.
             </h1>
 
