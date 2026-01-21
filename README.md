@@ -619,13 +619,19 @@ Track per UX version + date period:
 │   ├── public
 │   │   ├── apple-touch-icon.png
 │   │   ├── favicon.ico
+│   │   ├── file.svg
+│   │   ├── globe.svg
 │   │   ├── icon-192x192.png
 │   │   ├── icon-512x512.png
 │   │   ├── logo.png
-│   │   └── manifest.json
+│   │   ├── manifest.json
+│   │   ├── next.svg
+│   │   ├── vercel.svg
+│   │   └── window.svg
 │   ├── src
 │   │   ├── app
 │   │   │   ├── (app)              # Authenticated routes (TabBar visible)
+│   │   │   │   └── router/        # "What's Next Today" task page
 │   │   │   ├── api
 │   │   │   ├── auth
 │   │   │   ├── dashboard
@@ -633,6 +639,7 @@ Track per UX version + date period:
 │   │   │   ├── pwa
 │   │   │   ├── signup
 │   │   │   ├── actions.ts
+│   │   │   ├── favicon.ico
 │   │   │   ├── globals.css
 │   │   │   ├── layout.tsx
 │   │   │   └── page.tsx
@@ -640,7 +647,7 @@ Track per UX version + date period:
 │   │   │   ├── sequences
 │   │   │   ├── ui
 │   │   │   ├── HelpButton.tsx
-│   │   │   └── TabBar.tsx          # Responsive: sidebar on desktop, bottom tabs on mobile
+│   │   │   └── TabBar.tsx
 │   │   ├── lib
 │   │   │   ├── hooks
 │   │   │   ├── sequences
@@ -655,6 +662,10 @@ Track per UX version + date period:
 │   │   └── middleware.ts
 │   ├── supabase
 │   │   └── migrations
+│   │       ├── 00016_create_user_focus_points.sql
+│   │       ├── 00017_add_focus_points_batch_and_completion.sql
+│   │       ├── 00018_add_focus_points_update_policy.sql
+│   │       └── 00019_create_daily_tasks.sql    # NEW
 │   ├── deploy.sh
 │   ├── package.json
 │   └── tsconfig.json
@@ -713,6 +724,108 @@ npx pm2 restart mvp2
 ---
 
 ## Changelog
+
+### 2026-01-21: "What's Next Today" Interactive Task System ✅
+
+**New `/router` page with progressive task unlocking system.**
+
+#### What It Does
+
+1. **Mantra Task** — Audio player, 80% listened unlocks next task
+2. **First Victory Task** — User types nervous task → "Do Task Now" locks it in → "Task Done" completes
+3. **60-Second Reflection** — Appears after First Victory done
+
+#### Progressive Unlock
+
+- Tasks appear only when previous is completed
+- Status messages: "More unlocks on completion" → "Almost there — one task left!" → "🎉 Congrats! Done for today"
+
+#### Database Migration (REQUIRED)
+
+Run in **Supabase SQL Editor**:
+```sql
+-- File: app/supabase/migrations/00019_create_daily_tasks.sql
+CREATE TABLE daily_tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    task_date DATE NOT NULL,
+    task_key TEXT NOT NULL,
+    completed_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, task_date, task_key)
+);
+CREATE INDEX idx_daily_tasks_user ON daily_tasks(user_id);
+CREATE INDEX idx_daily_tasks_user_date ON daily_tasks(user_id, task_date);
+ALTER TABLE daily_tasks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own daily tasks" ON daily_tasks FOR ALL USING (auth.uid() = user_id);
+```
+
+#### Reset Tasks for Testing (SQL)
+
+```sql
+-- Keep only mantra done for user "Gregor" today
+DELETE FROM daily_tasks 
+WHERE user_id = (SELECT user_id FROM user_profiles WHERE name = 'Gregor')
+  AND task_date = CURRENT_DATE 
+  AND task_key != 'mantra';
+```
+
+#### Files Changed
+
+| File | Purpose |
+|------|---------|
+| `src/app/(app)/router/page.tsx` | Main "What's Next Today" UI |
+| `src/app/(app)/router/actions.ts` | Server actions: `getCompletedTasks`, `markTaskComplete`, `saveFirstVictory` |
+| `supabase/migrations/00019_create_daily_tasks.sql` | Database table for daily task tracking |
+
+---
+
+### 2026-01-21: Personalized Focus Points ✅
+
+**"Where Do We Go?" tab now shows personalized focus points panel at top.**
+
+#### What It Does
+
+- Shows user's current focus points in a panel: "Hi {NAME}. Your current focus:"
+- Click a focus point → marks complete (green, strikethrough)
+- Click again → undoes completion
+- Only the **latest batch** of focus points is shown (older batches hidden)
+
+#### Database Tables
+
+| Table | Purpose |
+|-------|---------|
+| `user_focus_points` | Stores focus points per user with batch grouping |
+
+#### Migrations (run in Supabase SQL Editor)
+
+Run these 3 migrations in order:
+1. `00016_create_user_focus_points.sql` — creates table + RLS
+2. `00017_add_focus_points_batch_and_completion.sql` — adds batch + completion columns
+3. `00018_add_focus_points_update_policy.sql` — enables update permissions
+
+#### Adding Focus Points (SQL Template)
+
+```sql
+-- Add focus points for a user (change name and texts as needed)
+WITH new_batch AS (
+    SELECT 
+        (SELECT user_id FROM user_profiles WHERE name = 'Gregor') as uid,
+        gen_random_uuid() as batch_id
+)
+INSERT INTO user_focus_points (user_id, focus_text, entry_batch_id)
+SELECT uid, 'Focus Point 1', batch_id FROM new_batch
+UNION ALL
+SELECT uid, 'Focus Point 2', batch_id FROM new_batch;
+```
+
+#### Files Changed
+
+| File | Purpose |
+|------|---------|
+| `src/app/(app)/purpose/page.tsx` | Added focus points panel UI |
+| `src/app/(app)/purpose/actions.ts` | Server actions: fetch points, toggle completion |
+
+---
 
 ### 2026-01-19: Responsive Desktop Sidebar Navigation ✅
 

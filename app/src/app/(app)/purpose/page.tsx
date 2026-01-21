@@ -1,20 +1,52 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getQuarterInfo } from '@/lib/quarterlyQuestions'
+import { getUserFocusPoints, getUserName, toggleFocusPointComplete, type FocusPoint } from './actions'
 
 /**
  * PROGRAM PURPOSE PAGE
  * 
  * Explains the 6 components of persistence for business success.
  * Includes quarterly reflections with year selection (2025-2035).
+ * Shows personalized focus points panel at top.
  */
 
 export default function PurposePage() {
     const router = useRouter()
     const [selectedYear, setSelectedYear] = useState(2025)
     const years = [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035]
+
+    // User personalization state
+    const [userName, setUserName] = useState<string | null>(null)
+    const [focusPoints, setFocusPoints] = useState<FocusPoint[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        async function loadUserData() {
+            const [name, points] = await Promise.all([
+                getUserName(),
+                getUserFocusPoints()
+            ])
+            setUserName(name)
+            setFocusPoints(points)
+            setLoading(false)
+        }
+        loadUserData()
+    }, [])
+
+    // Handle clicking a focus point to toggle completion
+    const handleFocusPointClick = async (pointId: string, currentlyCompleted: boolean) => {
+        // Optimistic update
+        setFocusPoints(prev => prev.map(p =>
+            p.id === pointId
+                ? { ...p, completed_at: currentlyCompleted ? null : new Date().toISOString() }
+                : p
+        ))
+        // Save to database
+        await toggleFocusPointComplete(pointId, currentlyCompleted)
+    }
 
     const components = [
         {
@@ -89,6 +121,42 @@ export default function PurposePage() {
     return (
         <div className="min-h-screen bg-black px-6 py-12 pb-32">
             <div className="w-full max-w-lg mx-auto">
+                {/* Personalized Focus Points Panel */}
+                {!loading && focusPoints.length > 0 && (
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 mb-10">
+                        <p className="text-white font-semibold text-sm mb-4">
+                            Hi {userName || 'there'}. Your current focus:
+                        </p>
+                        <div className="space-y-4">
+                            {focusPoints.map((point) => {
+                                const isCompleted = !!point.completed_at
+                                return (
+                                    <div
+                                        key={point.id}
+                                        onClick={() => handleFocusPointClick(point.id, isCompleted)}
+                                        className="flex gap-4 items-center cursor-pointer hover:opacity-80"
+                                    >
+                                        {/* Circle bullet - stroke only, green when completed */}
+                                        <div className="flex-shrink-0">
+                                            <div
+                                                className={`w-1.5 h-1.5 rounded-full border ${isCompleted
+                                                    ? 'bg-green-500 border-green-500'
+                                                    : 'border-gray-400'
+                                                    }`}
+                                            />
+                                        </div>
+                                        {/* Text */}
+                                        <p className={`text-sm leading-relaxed ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-200'
+                                            }`}>
+                                            {point.focus_text}
+                                        </p>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {/* Headline */}
                 <h1 className="text-2xl font-semibold text-white text-center mb-3 leading-relaxed">
                     Get the Clarity and Confidence to Grow Your Business like a Serial Entrepreneur.
