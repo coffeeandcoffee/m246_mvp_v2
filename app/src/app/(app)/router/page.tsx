@@ -12,7 +12,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { getUserAudioUrl } from '@/lib/audio'
-import { getCompletedTasks, markTaskComplete, saveFirstVictory } from './actions'
+import { getCompletedTasks, markTaskComplete, saveFirstVictory, getSuccessMetricsForRating, saveReflectionData, type SuccessMetricForRating } from './actions'
 
 type TaskKey = 'mantra' | 'first_victory' | 'reflection'
 
@@ -106,6 +106,12 @@ export default function WhatsNextTodayPage() {
     const [victoryLockedIn, setVictoryLockedIn] = useState(false)
     const [submittingVictory, setSubmittingVictory] = useState(false)
 
+    // Reflection state
+    const [successMetrics, setSuccessMetrics] = useState<SuccessMetricForRating[]>([])
+    const [metricRatings, setMetricRatings] = useState<Record<string, number>>({})
+    const [dailyLearning, setDailyLearning] = useState('')
+    const [submittingReflection, setSubmittingReflection] = useState(false)
+
     useEffect(() => {
         async function init() {
             const supabase = createClient()
@@ -145,6 +151,10 @@ export default function WhatsNextTodayPage() {
                 } else {
                     setAudioUrl(signedUrl)
                 }
+
+                // Fetch success metrics for reflection
+                const metrics = await getSuccessMetricsForRating()
+                setSuccessMetrics(metrics)
             }
             setLoading(false)
         }
@@ -238,50 +248,108 @@ export default function WhatsNextTodayPage() {
     return (
         <div className="w-full max-w-md mx-auto px-6 pt-12">
             {/* Greeting */}
-            <h1 className="text-3xl font-semibold text-white mb-3">
+            <h1 className="text-3xl font-semibold text-white mb-3 animate-fade-in-1">
                 Hi {userName || '...'}.
             </h1>
 
-            <ul className="text-gray-400 text-sm leading-relaxed mb-12 space-y-2">
-                <li>• Complete Below Tasks to Secure Your Psychological Safety for Today</li>
-                <li>• Beat Your Demons, Feel In Charge and Own Your Day!</li>
-            </ul>
-
-            {/* Chapter heading */}
-            <p className="text-gray-500 text-xs tracking-widest uppercase mb-4">
-                Chapter I: Psychological Safety
+            <p className="text-gray-500 text-sm mb-10 animate-fade-in-1">
+                Press play and become invincible.
             </p>
 
-            {/* Fading horizontal line */}
-            <div
-                className="h-px mb-8"
-                style={{ background: 'linear-gradient(to right, rgba(107, 114, 128, 0.6), transparent)' }}
-            />
-
             {/* Timeline */}
-            <div>
+            <div className="animate-fade-in-2">
                 {/* Timeline items */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {/* Item 1: Enjoy Your Mantra */}
-                    <button
+                    {/* Item 1: Enjoy Your Morning Coffee - with inline player */}
+                    <div
                         onClick={() => setSelectedTask('mantra')}
-                        className={`flex items-center gap-3 relative w-full text-left py-2 px-2 rounded-lg border transition-all duration-300 ease-out ${selectedTask === 'mantra'
+                        className={`relative w-full rounded-lg border transition-all duration-300 ease-out cursor-pointer ${selectedTask === 'mantra'
                             ? 'border-gray-500'
                             : 'border-transparent'
                             }`}
                     >
-                        <div className="w-6 h-6 flex items-center justify-center z-10">
-                            {isMantraComplete ? <CheckIcon /> : <CoffeeIcon active={selectedTask === 'mantra'} />}
-                        </div>
-                        <span className={`flex-1 transition-colors duration-300 ${selectedTask === 'mantra' ? 'text-white' : 'text-gray-600'}`}>
-                            Enjoy Your Mantra
-                        </span>
-                        {isMantraComplete ? (
-                            <span className="text-gray-600 text-xs italic">tap to replay</span>
-                        ) : !showSecondTask && (
-                            <span className="text-gray-500 text-xs italic">next →</span>
+                        {/* Hidden audio element */}
+                        {audioUrl && (
+                            <audio
+                                ref={audioRef}
+                                src={audioUrl}
+                                preload="metadata"
+                                onLoadedMetadata={handleLoadedMetadata}
+                                onTimeUpdate={handleTimeUpdate}
+                                onEnded={handleAudioEnded}
+                                onError={() => setAudioError('Could not load audio')}
+                            />
                         )}
-                    </button>
+
+                        <div className="flex items-center gap-3 py-2 px-2">
+                            {/* Play/Pause button - replaces coffee icon */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedTask('mantra')
+                                    togglePlay()
+                                }}
+                                disabled={!audioUrl || audioDuration === 0}
+                                className="w-6 h-6 flex items-center justify-center z-10 disabled:opacity-50"
+                            >
+                                {isMantraComplete && !isPlaying && currentTime === 0 ? (
+                                    <svg className="w-4 h-4 text-gray-400 hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                                        <polygon points="5,3 19,12 5,21" />
+                                    </svg>
+                                ) : isPlaying ? (
+                                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <rect x="6" y="4" width="4" height="16" />
+                                        <rect x="14" y="4" width="4" height="16" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-4 h-4 text-gray-400 hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24">
+                                        <polygon points="5,3 19,12 5,21" />
+                                    </svg>
+                                )}
+                            </button>
+
+                            <span className={`flex-1 transition-colors duration-300 ${selectedTask === 'mantra' ? 'text-white' : 'text-gray-600'}`}>
+                                Enjoy your morning coffee
+                            </span>
+
+                            {isMantraComplete && (
+                                <CheckIcon />
+                            )}
+                        </div>
+
+                        {/* Expandable progress bar - shows when playing or has progress */}
+                        {(isPlaying || currentTime > 0) && (
+                            <div
+                                className="flex items-center gap-3 px-2 pb-2"
+                                style={{ animation: 'fadeIn 0.3s ease-out' }}
+                            >
+                                <span className="text-gray-500 text-xs w-10 text-right">{formatTime(currentTime)}</span>
+                                <div
+                                    className="flex-1 h-1 cursor-pointer flex items-center"
+                                    onClick={(e) => {
+                                        if (audioRef.current && audioDuration > 0) {
+                                            const rect = e.currentTarget.getBoundingClientRect()
+                                            const clickX = e.clientX - rect.left
+                                            const percent = clickX / rect.width
+                                            audioRef.current.currentTime = percent * audioDuration
+                                        }
+                                    }}
+                                >
+                                    <div className="w-full h-px bg-gray-700 relative">
+                                        <div
+                                            className="absolute left-0 top-0 h-px bg-white transition-all duration-300"
+                                            style={{ width: `${progressPercent}%` }}
+                                        />
+                                    </div>
+                                </div>
+                                <span className="text-gray-500 text-xs w-10">{formatTime(audioDuration)}</span>
+                            </div>
+                        )}
+
+                        {audioError && (
+                            <p className="text-red-400 text-xs px-2 pb-2">{audioError}</p>
+                        )}
+                    </div>
 
                     {/* Item 2: Today's First Victory - only shows after 80% audio */}
                     {showSecondTask && (
@@ -294,13 +362,13 @@ export default function WhatsNextTodayPage() {
                             style={{ animation: 'fadeIn 0.5s ease-out' }}
                         >
                             <div className="w-6 h-6 flex items-center justify-center z-10">
-                                {isVictoryComplete ? <CheckIcon /> : <VictoryIcon active={selectedTask === 'first_victory'} />}
+                                <VictoryIcon active={selectedTask === 'first_victory'} />
                             </div>
                             <span className={`flex-1 transition-colors duration-300 ${selectedTask === 'first_victory' ? 'text-white' : 'text-gray-600'}`}>
-                                Today&apos;s First Victory
+                                Become Fearless
                             </span>
-                            {!isVictoryComplete && !showThirdTask && (
-                                <span className="text-gray-500 text-xs italic">next →</span>
+                            {isVictoryComplete && (
+                                <CheckIcon />
                             )}
                         </button>
                     )}
@@ -316,118 +384,41 @@ export default function WhatsNextTodayPage() {
                             style={{ animation: 'fadeIn 0.5s ease-out' }}
                         >
                             <div className="w-6 h-6 flex items-center justify-center z-10">
-                                {isReflectionComplete ? <CheckIcon /> : <ReflectionIcon active={selectedTask === 'reflection'} />}
+                                <ReflectionIcon active={selectedTask === 'reflection'} />
                             </div>
                             <span className={`flex-1 transition-colors duration-300 ${selectedTask === 'reflection' ? 'text-white' : 'text-gray-600'}`}>
                                 60-Second Reflection
                             </span>
-                            {!isReflectionComplete && (
-                                <span className="text-gray-500 text-xs italic">next →</span>
+                            {isReflectionComplete && (
+                                <CheckIcon />
                             )}
                         </button>
                     )}
                 </div>
 
-                {/* Status message based on completion */}
                 {isReflectionComplete ? (
                     <p className="text-green-500 text-sm mt-6">
-                        🎉 Congrats! Done for today. Come back tomorrow morning.
+                        Congrats! Done for today. Come back tomorrow morning.
                     </p>
                 ) : showThirdTask && !isReflectionComplete ? (
                     <p className="text-gray-500 text-xs italic mt-6">
                         Almost there — one task left!
                     </p>
-                ) : (!showSecondTask || !showThirdTask) ? (
-                    <p className="text-gray-600 text-xs italic mt-6">
-                        More unlocks on completion.
-                    </p>
                 ) : null}
             </div>
 
             {/* Content Panel */}
-            <div className="mt-12 pt-8 border-t border-gray-800">
-                {selectedTask === 'mantra' && (
-                    <div className="text-center">
-                        <h2 className="text-xl font-medium text-white mb-2">Play Your Mantra</h2>
-                        <p className="text-gray-500 text-sm italic mb-8">
-                            &ldquo;Whether You Think You Can Do It Or You Think You Can&apos;t, You&apos;re Right.&rdquo;
-                            <span className="block mt-1 not-italic text-gray-600">— Henry Ford</span>
-                        </p>
-
-                        {/* Audio element */}
-                        {audioUrl && (
-                            <audio
-                                ref={audioRef}
-                                src={audioUrl}
-                                preload="metadata"
-                                onLoadedMetadata={handleLoadedMetadata}
-                                onTimeUpdate={handleTimeUpdate}
-                                onEnded={handleAudioEnded}
-                                onError={() => setAudioError('Could not load audio')}
-                            />
-                        )}
-
-                        {audioError && (
-                            <p className="text-red-400 text-sm mb-4">{audioError}</p>
-                        )}
-
-                        {/* Play/Pause button */}
-                        <button
-                            onClick={togglePlay}
-                            disabled={!audioUrl || audioDuration === 0}
-                            className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center mb-6 mx-auto hover:bg-white/10 transition-colors disabled:opacity-50"
-                        >
-                            {isPlaying ? (
-                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <rect x="6" y="4" width="4" height="16" />
-                                    <rect x="14" y="4" width="4" height="16" />
-                                </svg>
-                            ) : (
-                                <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                    <polygon points="5,3 19,12 5,21" />
-                                </svg>
-                            )}
-                        </button>
-
-                        {/* Progress bar */}
-                        <div
-                            className="w-full bg-white/20 rounded-full h-4 mb-2 cursor-pointer flex items-center"
-                            onClick={(e) => {
-                                if (audioRef.current && audioDuration > 0) {
-                                    const rect = e.currentTarget.getBoundingClientRect()
-                                    const clickX = e.clientX - rect.left
-                                    const percent = clickX / rect.width
-                                    audioRef.current.currentTime = percent * audioDuration
-                                }
-                            }}
-                        >
-                            <div
-                                className="bg-white h-1 rounded-full transition-all duration-300"
-                                style={{ width: `${progressPercent}%` }}
-                            />
-                        </div>
-
-                        {/* Time display */}
-                        <div className="flex justify-between text-gray-500 text-xs">
-                            <span>{formatTime(currentTime)}</span>
-                            <span>{formatTime(audioDuration)}</span>
-                        </div>
-
-                        {audioUrl && audioDuration === 0 && !audioError && (
-                            <p className="text-gray-500 text-sm mt-4">Loading audio...</p>
-                        )}
-                    </div>
-                )}
+            <div className="mt-12 animate-fade-in-3">
 
                 {selectedTask === 'first_victory' && (
                     <div>
                         {!victoryLockedIn && !isVictoryComplete && (
                             <>
                                 <h2 className="text-xl font-medium text-white mb-4 text-center">
-                                    What&apos;s the thing you are most nervous about?
+                                    What are you most nervous about?
                                 </h2>
                                 <p className="text-gray-500 text-sm leading-relaxed mb-8 text-center">
-                                    Without fooling yourself, tackling the true root of nervousness, is the fastest way to build rock-solid confidence early in the day, and create a feeling of invincibility: crucial for frictionless progress, and realizing what is truly possible.
+                                    Without fooling yourself, tackling the true root of nervousness, is the fastest way to build rock-solid confidence early in the day.<br /><br />You will become fearless and invincible. Now you have reached maximum productivity potential. Do not focus on how it CAN NOT be done. Focus on how it CAN be done. And you are unstoppable.
                                 </p>
                             </>
                         )}
@@ -465,7 +456,7 @@ export default function WhatsNextTodayPage() {
                                 <textarea
                                     value={victoryTask}
                                     onChange={(e) => setVictoryTask(e.target.value)}
-                                    placeholder="e.g., Making that difficult phone call..."
+                                    placeholder="e.g., Making that phone call, Asking myself that question, ..."
                                     className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white/40 resize-none mb-6"
                                     rows={3}
                                 />
@@ -482,24 +473,77 @@ export default function WhatsNextTodayPage() {
                 )}
 
                 {selectedTask === 'reflection' && (
-                    <div className="text-center">
-                        <h2 className="text-xl font-medium text-white mb-4">
+                    <div>
+                        <h2 className="text-xl font-medium text-white mb-4 text-center">
                             60-Second Reflection
                         </h2>
-                        <p className="text-gray-500 text-sm leading-relaxed mb-8">
-                            Take 60 seconds to close your eyes and visualize yourself completing today&apos;s first victory.
-                            Feel the relief and confidence that comes with it. You&apos;ve got this.
-                        </p>
 
                         {isReflectionComplete ? (
-                            <p className="text-green-500">✓ Completed</p>
+                            <p className="text-green-500 text-center">✓ Completed</p>
                         ) : (
-                            <button
-                                onClick={handleCompleteReflection}
-                                className="btn-primary"
-                            >
-                                I&apos;ve Done My Reflection
-                            </button>
+                            <div className="space-y-6">
+                                {/* Custom metrics ratings */}
+                                {successMetrics.length > 0 ? (
+                                    <div className="space-y-4">
+                                        {successMetrics.map((metric) => (
+                                            <div key={metric.id} className="space-y-2">
+                                                <p className="text-gray-300 text-sm text-center">{metric.question}</p>
+                                                <div className="flex justify-center gap-1">
+                                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                                        <button
+                                                            key={num}
+                                                            onClick={() => setMetricRatings(prev => ({ ...prev, [metric.id]: num }))}
+                                                            className={`w-8 h-8 rounded-full border text-xs font-medium transition-all
+                                                                ${metricRatings[metric.id] === num
+                                                                    ? 'bg-white text-black border-white'
+                                                                    : 'bg-transparent text-white border-white/30 hover:border-white/60'
+                                                                }`}
+                                                        >
+                                                            {num}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                                        <p className="text-gray-500 text-sm italic text-center">
+                                            Custom Success Metric Questions Appear Here.<br />
+                                            Design Your Own under &quot;Where Do We Go&quot; Now.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Daily learning question */}
+                                <div className="space-y-2">
+                                    <p className="text-gray-300 text-sm">
+                                        In one sentence, what's the most important thing you learned today to increase revenue?
+                                    </p>
+                                    <textarea
+                                        value={dailyLearning}
+                                        onChange={(e) => setDailyLearning(e.target.value)}
+                                        placeholder="Today I learned..."
+                                        className="w-full px-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-white/40 resize-none text-sm"
+                                        rows={2}
+                                    />
+                                </div>
+
+                                {/* Complete button */}
+                                <button
+                                    onClick={async () => {
+                                        setSubmittingReflection(true)
+                                        await saveReflectionData(metricRatings, dailyLearning)
+                                        await markTaskComplete('reflection')
+                                        setCompletedTasks(prev => [...prev, 'reflection'])
+                                        setSubmittingReflection(false)
+                                    }}
+                                    disabled={submittingReflection}
+                                    className="btn-primary w-full disabled:opacity-50"
+                                >
+                                    {submittingReflection ? 'Saving...' : 'Complete Reflection'}
+                                </button>
+                            </div>
                         )}
                     </div>
                 )}
@@ -512,6 +556,6 @@ export default function WhatsNextTodayPage() {
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
-        </div>
+        </div >
     )
 }

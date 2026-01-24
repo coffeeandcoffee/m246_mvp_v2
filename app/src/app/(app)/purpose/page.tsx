@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getQuarterInfo } from '@/lib/quarterlyQuestions'
-import { getUserFocusPoints, getUserName, toggleFocusPointComplete, type FocusPoint } from './actions'
+import { getUserFocusPoints, getUserName, toggleFocusPointComplete, getSuccessMetricQuestions, type FocusPoint } from './actions'
 
 /**
  * PROGRAM PURPOSE PAGE
@@ -21,16 +21,19 @@ export default function PurposePage() {
     // User personalization state
     const [userName, setUserName] = useState<string | null>(null)
     const [focusPoints, setFocusPoints] = useState<FocusPoint[]>([])
+    const [successMetricsCount, setSuccessMetricsCount] = useState(0)
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         async function loadUserData() {
-            const [name, points] = await Promise.all([
+            const [name, points, metrics] = await Promise.all([
                 getUserName(),
-                getUserFocusPoints()
+                getUserFocusPoints(),
+                getSuccessMetricQuestions()
             ])
             setUserName(name)
             setFocusPoints(points)
+            setSuccessMetricsCount(metrics.length)
             setLoading(false)
         }
         loadUserData()
@@ -121,11 +124,19 @@ export default function PurposePage() {
     return (
         <div className="min-h-screen bg-black px-6 py-12 pb-32">
             <div className="w-full max-w-lg mx-auto">
+                {/* Headline */}
+                <h1 className="text-2xl font-semibold text-white text-center mb-10 leading-relaxed">
+                    Together, We Find The Right Way For You To Grow Your Business
+                </h1>
+
                 {/* Personalized Focus Points Panel */}
                 {!loading && focusPoints.length > 0 && (
-                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 mb-10">
-                        <p className="text-white font-semibold text-sm mb-4">
-                            Hi {userName || 'there'}. Your current focus:
+                    <div
+                        className="rounded-xl p-5 mb-6 animate-fade-in-1 border border-cyan-500/20"
+                        style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%)' }}
+                    >
+                        <p className="text-cyan-400/80 text-sm text-center mb-4 tracking-wider">
+                            CURRENT FOCUS
                         </p>
                         <div className="space-y-4">
                             {focusPoints.map((point) => {
@@ -136,16 +147,14 @@ export default function PurposePage() {
                                         onClick={() => handleFocusPointClick(point.id, isCompleted)}
                                         className="flex gap-4 items-center cursor-pointer hover:opacity-80"
                                     >
-                                        {/* Circle bullet - stroke only, green when completed */}
                                         <div className="flex-shrink-0">
                                             <div
                                                 className={`w-1.5 h-1.5 rounded-full border ${isCompleted
-                                                    ? 'bg-green-500 border-green-500'
-                                                    : 'border-gray-400'
+                                                    ? 'bg-cyan-400 border-cyan-400'
+                                                    : 'border-cyan-400/60'
                                                     }`}
                                             />
                                         </div>
-                                        {/* Text */}
                                         <p className={`text-sm leading-relaxed ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-200'
                                             }`}>
                                             {point.focus_text}
@@ -157,67 +166,35 @@ export default function PurposePage() {
                     </div>
                 )}
 
-                {/* Headline */}
-                <h1 className="text-2xl font-semibold text-white text-center mb-3 leading-relaxed">
-                    Get the Clarity and Confidence to Grow Your Business like a Serial Entrepreneur.
-                </h1>
-
-                {/* Quote below headline */}
-                <p className="text-gray-500 text-sm text-center mb-10">
-                    Remove all Barriers. No Overthinking. Just Execution.
-                </p>
-
-                {/* 3-Step Guide */}
-                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 mb-10 space-y-3">
-                    <h2 className="text-white font-semibold text-sm mb-4">How to use:</h2>
-                    <div className="flex gap-3">
-                        <span className="text-gray-400 font-medium">1.</span>
-                        <p className="text-gray-200 text-sm">Open App Every Day to do the Next Action.</p>
+                {/* Custom Success Metrics Panel */}
+                {!loading && (
+                    <div
+                        onClick={() => router.push('/purpose/metrics')}
+                        className={`rounded-xl p-5 mb-6 cursor-pointer animate-fade-in-2 ${successMetricsCount > 0
+                            ? 'bg-gray-900/20 border border-gray-800/50 hover:bg-gray-800/30'
+                            : 'gradient-flow-azure border border-cyan-500/30 hover:border-cyan-400/50'
+                            }`}
+                        style={successMetricsCount === 0 ? {
+                            boxShadow: '0 0 25px rgba(6, 182, 212, 0.2), inset 0 0 25px rgba(59, 130, 246, 0.08)'
+                        } : undefined}
+                    >
+                        <p className={`text-sm text-center mb-3 tracking-wider ${successMetricsCount > 0 ? 'text-gray-500' : 'text-cyan-400/90'
+                            }`}>
+                            YOUR OWN SUCCESS DEFINITION
+                        </p>
+                        <div className="flex justify-center">
+                            <span className={`text-sm px-4 py-1.5 rounded-full transition-colors ${successMetricsCount > 0
+                                ? 'bg-gray-800/50 text-gray-400 hover:bg-gray-700/50'
+                                : 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30'
+                                }`}>
+                                {successMetricsCount > 0 ? 'Edit Success Metrics →' : 'Set Your Metric Now →'}
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex gap-3">
-                        <span className="text-gray-400 font-medium">2.</span>
-                        <p className="text-gray-200 text-sm">Monitor Progress Below.</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <span className="text-gray-400 font-medium">3.</span>
-                        <p className="text-gray-200 text-sm">Watch your business grow.</p>
-                    </div>
-                </div>
-
-                {/* Progress Panel */}
-                <div className="bg-gray-900/30 border border-gray-800 rounded-xl p-5 mt-10">
-                    <p className="text-gray-500 text-sm text-center mb-6">
-                        PROGRESS
-                    </p>
-                    <div className="space-y-4">
-                        {components.map((component, index) => (
-                            <div
-                                key={component.number}
-                                className="flex gap-4 items-center"
-                            >
-                                {/* Circle bullet - green stroke only for first, gray for rest */}
-                                <div className="flex-shrink-0">
-                                    <div
-                                        className={`w-1.5 h-1.5 rounded-full border ${component.completed
-                                            ? 'bg-green-500 border-green-500'
-                                            : index === 0
-                                                ? 'border-green-500'
-                                                : 'border-gray-600'
-                                            }`}
-                                    />
-                                </div>
-                                {/* Text - first item lighter, rest darker */}
-                                <p className={`text-sm leading-relaxed ${index === 0 ? 'text-gray-300' : 'text-gray-600'
-                                    }`}>
-                                    {component.text}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                )}
 
                 {/* Quarterly Reflections Panel */}
-                <div id="reflections" className="bg-gray-900/20 border border-gray-800/50 rounded-xl p-5 mt-6">
+                <div id="reflections" className={`bg-gray-900/20 border border-gray-800/50 rounded-xl p-5 ${!loading ? 'animate-fade-in-3' : 'opacity-0'}`}>
                     <p className="text-gray-500 text-sm text-center mb-4">
                         QUARTERLY REFLECTIONS
                     </p>
@@ -243,11 +220,9 @@ export default function PurposePage() {
                                 ))}
                             </div>
                         </div>
-                        {/* Fade gradient on right */}
                         <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-900/80 to-transparent pointer-events-none" />
                     </div>
 
-                    {/* Horizontal line below years */}
                     <hr className="border-gray-800 mb-4" />
 
                     {/* Q1-Q4 Panels */}
@@ -264,17 +239,14 @@ export default function PurposePage() {
                                     className={`bg-gray-900/30 border border-gray-800 rounded-xl p-4 flex flex-col items-center justify-center min-h-[80px] ${quarterInfo.isActive ? 'cursor-pointer hover:bg-gray-800/50' : 'opacity-50'
                                         }`}
                                 >
-                                    {/* Circle bullet */}
                                     <div
                                         className={`w-1.5 h-1.5 rounded-full border mb-2 ${isCurrentActive ? 'border-green-500' : 'border-gray-600'
                                             }`}
                                     />
-                                    {/* Quarter label */}
                                     <span className={`text-sm ${isCurrentActive ? 'text-gray-300' : 'text-gray-600'
                                         }`}>
                                         Q{quarter}
                                     </span>
-                                    {/* "Available" text for next quarter */}
                                     {isNextQuarter && !quarterInfo.isActive && (
                                         <span className="text-[10px] text-gray-600 mt-1 text-center">
                                             available {quarterInfo.availableText}

@@ -94,3 +94,106 @@ export async function toggleFocusPointComplete(
 
     return { success: true, newCompletedAt: newValue }
 }
+
+// ============================================================================
+// SUCCESS METRIC QUESTIONS - Custom daily reflection questions
+// ============================================================================
+
+export type SuccessMetricQuestion = {
+    id: string
+    question: string
+    position: number
+    created_at: string
+}
+
+/**
+ * Get user's custom success metric questions (max 3)
+ */
+export async function getSuccessMetricQuestions(): Promise<SuccessMetricQuestion[]> {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data, error } = await supabase
+        .from('success_metric_questions')
+        .select('id, question, position, created_at')
+        .eq('user_id', user.id)
+        .order('position', { ascending: true })
+
+    if (error) {
+        console.error('Error fetching success metrics:', error)
+        return []
+    }
+
+    return data || []
+}
+
+/**
+ * Save a success metric question (create or update)
+ */
+export async function saveSuccessMetricQuestion(
+    questionId: string | null,
+    questionText: string,
+    position: number
+): Promise<{ success: boolean; id?: string }> {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false }
+
+    if (questionId) {
+        // Update existing
+        const { error } = await supabase
+            .from('success_metric_questions')
+            .update({ question: questionText })
+            .eq('id', questionId)
+            .eq('user_id', user.id)
+
+        if (error) {
+            console.error('Error updating success metric:', error)
+            return { success: false }
+        }
+        return { success: true, id: questionId }
+    } else {
+        // Create new
+        const { data, error } = await supabase
+            .from('success_metric_questions')
+            .insert({
+                user_id: user.id,
+                question: questionText,
+                position
+            })
+            .select('id')
+            .single()
+
+        if (error) {
+            console.error('Error creating success metric:', error)
+            return { success: false }
+        }
+        return { success: true, id: data?.id }
+    }
+}
+
+/**
+ * Delete a success metric question
+ */
+export async function deleteSuccessMetricQuestion(questionId: string): Promise<boolean> {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+
+    const { error } = await supabase
+        .from('success_metric_questions')
+        .delete()
+        .eq('id', questionId)
+        .eq('user_id', user.id)
+
+    if (error) {
+        console.error('Error deleting success metric:', error)
+        return false
+    }
+
+    return true
+}

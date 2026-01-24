@@ -630,8 +630,7 @@ Track per UX version + date period:
 │   │   └── window.svg
 │   ├── src
 │   │   ├── app
-│   │   │   ├── (app)              # Authenticated routes (TabBar visible)
-│   │   │   │   └── router/        # "What's Next Today" task page
+│   │   │   ├── (app)
 │   │   │   ├── api
 │   │   │   ├── auth
 │   │   │   ├── dashboard
@@ -662,12 +661,35 @@ Track per UX version + date period:
 │   │   └── middleware.ts
 │   ├── supabase
 │   │   └── migrations
+│   │       ├── 00001_create_invite_codes.sql
+│   │       ├── 00002_create_user_profiles.sql
+│   │       ├── 00003_create_sequences_and_pages.sql
+│   │       ├── 00004_create_metrics.sql
+│   │       ├── 00005_create_daily_logs.sql
+│   │       ├── 00006_create_sequence_progress.sql
+│   │       ├── 00007_create_metric_responses.sql
+│   │       ├── 00008_create_page_events.sql
+│   │       ├── 00009_create_feature_suggestions.sql
+│   │       ├── 00010_create_rls_policies.sql
+│   │       ├── 00011_storage_bucket_docs.sql
+│   │       ├── 00014_add_day_off_override_metric.sql
+│   │       ├── 00015_create_quarterly_reports.sql
 │   │       ├── 00016_create_user_focus_points.sql
 │   │       ├── 00017_add_focus_points_batch_and_completion.sql
 │   │       ├── 00018_add_focus_points_update_policy.sql
-│   │       └── 00019_create_daily_tasks.sql    # NEW
+│   │       ├── 00019_create_daily_tasks.sql
+│   │       ├── 00020_create_success_metrics.sql
+│   │       ├── 00021_custom_metric_rpc.sql
+│   │       ├── 20251213235210_add_user_profile_insert_policy.sql
+│   │       └── 20251213235719_fix_trigger_rls_bypass.sql
 │   ├── deploy.sh
+│   ├── eslint.config.mjs
+│   ├── next-env.d.ts
+│   ├── next.config.ts
+│   ├── nginx-member.m246.org.conf
+│   ├── package-lock.json
 │   ├── package.json
+│   ├── postcss.config.mjs
 │   └── tsconfig.json
 └── README.md
 ```
@@ -796,7 +818,36 @@ WHERE user_id = (SELECT user_id FROM user_profiles WHERE name = 'Gregor')
 |-------|---------|
 | `user_focus_points` | Stores focus points per user with batch grouping |
 
-#### Migrations (run in Supabase SQL Editor)
+
+
+---
+
+### 2026-01-22: Router & Purpose UI Overhaul + Mantra Player Redesign ✅
+
+**Major UI/UX improvements for "What's Next Today" and "Purpose" pages to reduce friction.**
+
+#### Key Changes
+
+1.  **"What's Next Today" Redesign (`/router`)**:
+    *   **Inline Mantra Player**: Replaced coffee icon with inline play/pause button and expandable one-line progress bar. Removed separate content panel.
+    *   **Staggered Animations**: Content fades in sequentially (Heading → Timeline → Content).
+    *   **Simplified Copy**: Replaced bullet points with single "Press play and become invincible" line.
+    *   **Clean Status**: Removed redundant "More unlocks" messages.
+
+2.  **"Purpose" Page Polish (`/purpose`)**:
+    *   **Smooth Loading**: Focus and Metrics panels fade in sequentially, eliminating layout shifts.
+    *   **Visuals**: Focus panel now has consistent azure border. Success Metrics panel glows amber when empty, azure when set.
+
+3.  **Analytics & Animations**:
+    *   **Microsoft Clarity**: Added tracking script to `src/app/layout.tsx` for session recording and heatmaps.
+    *   **Global Animations**: Added standard `fade-in-1/2/3/4` utility classes in `globals.css` for consistent staggered entrances.
+
+#### Files Changed
+| File | Purpose |
+|------|---------|
+| `src/app/(app)/router/page.tsx` | New inline mantra player, simplified UI |
+| `src/app/(app)/purpose/page.tsx` | Staggered fade animations, visual fix |
+| `src/app/globals.css` | Added `fadeIn` keyframes and utility classes |
 
 Run these 3 migrations in order:
 1. `00016_create_user_focus_points.sql` — creates table + RLS
