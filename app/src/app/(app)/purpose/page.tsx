@@ -26,15 +26,21 @@ export default function PurposePage() {
 
     useEffect(() => {
         async function loadUserData() {
-            const [name, points, metrics] = await Promise.all([
-                getUserName(),
-                getUserFocusPoints(),
-                getSuccessMetricQuestions()
-            ])
-            setUserName(name)
-            setFocusPoints(points)
-            setSuccessMetricsCount(metrics.length)
-            setLoading(false)
+            try {
+                const [name, points, metrics] = await Promise.all([
+                    getUserName(),
+                    getUserFocusPoints(),
+                    getSuccessMetricQuestions()
+                ])
+                setUserName(name)
+                setFocusPoints(points)
+                setSuccessMetricsCount(metrics.length)
+            } catch (error) {
+                console.error('Failed to load user data on Purpose page:', error)
+                // Page will render with default/empty states
+            } finally {
+                setLoading(false)
+            }
         }
         loadUserData()
     }, [])
@@ -192,6 +198,21 @@ export default function PurposePage() {
                         </div>
                     </div>
                 )}
+
+                {/* See All Past Learnings Panel */}
+                <div
+                    onClick={() => router.push('/purpose/learnings')}
+                    className="bg-gray-900/20 border border-gray-800/50 rounded-xl p-5 mb-6 cursor-pointer hover:bg-gray-800/30 animate-fade-in-3"
+                >
+                    <p className="text-gray-500 text-sm text-center mb-3 tracking-wider">
+                        WEEKLY LEARNINGS
+                    </p>
+                    <div className="flex justify-center">
+                        <span className="text-sm px-4 py-1.5 rounded-full bg-gray-800/50 text-gray-400 hover:bg-gray-700/50">
+                            See all Past Learnings →
+                        </span>
+                    </div>
+                </div>
 
                 {/* Quarterly Reflections Panel */}
                 <div id="reflections" className={`bg-gray-900/20 border border-gray-800/50 rounded-xl p-5 ${!loading ? 'animate-fade-in-3' : 'opacity-0'}`}>

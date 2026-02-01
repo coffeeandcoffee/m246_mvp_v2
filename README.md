@@ -747,6 +747,50 @@ npx pm2 restart mvp2
 
 ## Changelog
 
+### 2026-02-01: Purpose Page Error Handling ✅
+
+**Fixed potential issue where panels could fail to render if data fetching errors occurred.**
+
+#### File Changed
+
+| File | Change |
+|------|--------|
+| `src/app/(app)/purpose/page.tsx` | Added try-catch-finally to `useEffect` data loading |
+
+#### What It Does
+
+- Wraps `Promise.all` data fetching in try-catch-finally
+- `setLoading(false)` now always runs (in `finally` block)
+- Errors logged to console for debugging via Clarity
+- No UX change — user always sees all panels
+
+---
+
+### 2026-02-01: Weekly Learnings Page ✅
+
+**New "Weekly Learnings" panel on "Where Do We Go?" tab with dedicated learnings history page.**
+
+#### What It Does
+
+- New panel on `/purpose` page: "WEEKLY LEARNINGS" → "See all Past Learnings →"
+- New page `/purpose/learnings` displays all past learnings grouped by week (e.g., "2026 - W05")
+- Current week always shown at top, even if empty
+- Empty week shows: "No learnings recorded this week. Complete your morning flow and fill in a learning for the day."
+
+#### Files Changed
+
+| File | Purpose |
+|------|---------|
+| `src/app/(app)/purpose/page.tsx` | Added "Weekly Learnings" panel |
+| `src/app/(app)/purpose/learnings/page.tsx` | **[NEW]** Learnings history page grouped by week |
+| `src/app/(app)/purpose/actions.ts` | Added `getAllLearnings()` server action |
+
+#### Data Source
+
+Reads from `daily_learnings` table (created in migration `00020_create_success_metrics.sql`).
+
+---
+
 ### 2026-01-21: "What's Next Today" Interactive Task System ✅
 
 **New `/router` page with progressive task unlocking system.**

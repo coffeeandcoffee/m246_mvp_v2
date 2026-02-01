@@ -197,3 +197,36 @@ export async function deleteSuccessMetricQuestion(questionId: string): Promise<b
 
     return true
 }
+
+// ============================================================================
+// DAILY LEARNINGS
+// ============================================================================
+
+export type DailyLearning = {
+    id: string
+    learning_text: string
+    created_at: string
+}
+
+/**
+ * Get all past daily learnings for the user
+ */
+export async function getAllLearnings(): Promise<DailyLearning[]> {
+    const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data, error } = await supabase
+        .from('daily_learnings')
+        .select('id, learning_text, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching learnings:', error)
+        return []
+    }
+
+    return data || []
+}
