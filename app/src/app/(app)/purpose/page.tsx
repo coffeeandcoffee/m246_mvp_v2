@@ -132,7 +132,7 @@ export default function PurposePage() {
             <div className="w-full max-w-lg mx-auto">
                 {/* Headline */}
                 <h1 className="text-2xl font-semibold text-white text-center mb-10 leading-relaxed">
-                    Together, We Find The Right Way For You To Grow Your Business
+                    Take Time to Decide What to Focus on to Grow Your Business.
                 </h1>
 
                 {/* Personalized Focus Points Panel */}
