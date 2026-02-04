@@ -102,13 +102,13 @@ export default function TabBar() {
     const tabs: Tab[] = [
         {
             id: 'strategy',
-            label: 'Where Do We Go?',
+            label: 'Overview',
             path: '/purpose',
             icon: <StrategyIcon active={activeTab === 'strategy'} />
         },
         {
             id: 'action',
-            label: 'Whats Next Today?',
+            label: 'Next Step',
             path: '/router',
             icon: <ActionIcon active={activeTab === 'action'} />
         },
