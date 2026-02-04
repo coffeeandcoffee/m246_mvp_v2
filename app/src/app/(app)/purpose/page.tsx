@@ -132,7 +132,7 @@ export default function PurposePage() {
             <div className="w-full max-w-lg mx-auto">
                 {/* Headline */}
                 <h1 className="text-2xl font-semibold text-white text-center mb-10 leading-relaxed">
-                    Take Time. First, foucs on what Grows Your Business.
+                    Take Time. First, focus on what Grows Your Business.
                 </h1>
 
                 {/* Personalized Focus Points Panel */}
