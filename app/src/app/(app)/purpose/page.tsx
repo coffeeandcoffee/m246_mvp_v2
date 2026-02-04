@@ -132,7 +132,7 @@ export default function PurposePage() {
             <div className="w-full max-w-lg mx-auto">
                 {/* Headline */}
                 <h1 className="text-2xl font-semibold text-white text-center mb-10 leading-relaxed">
-                    Take Time to Decide What to Focus on to Grow Your Business.
+                    Take Time. Focus first, on what Grows Your Business.
                 </h1>
 
                 {/* Personalized Focus Points Panel */}
@@ -142,7 +142,7 @@ export default function PurposePage() {
                         style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%)' }}
                     >
                         <p className="text-cyan-400/80 text-sm text-center mb-4 tracking-wider">
-                            CURRENT FOCUS
+                            High Importance Strategic Tasks
                         </p>
                         <div className="space-y-4">
                             {focusPoints.map((point) => {
