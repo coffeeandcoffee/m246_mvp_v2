@@ -1,7 +1,7 @@
 /**
  * ROOT PAGE
  * 
- * Redirects to /pwa which handles standalone detection.
+ * Simple redirect to /pwa which handles all detection logic.
  */
 
 import { redirect } from 'next/navigation'

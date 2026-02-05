@@ -745,6 +745,12 @@ npx pm2 restart mvp2
 
 ---
 
+## Password Reset (Admin)
+
+If a user forgets their password: **Supabase Dashboard → Authentication → Users → Find user → ⋮ → Send password recovery email.**
+
+---
+
 ## Changelog
 
 ### 2026-02-01: Purpose Page Error Handling ✅
@@ -792,6 +798,34 @@ Reads from `daily_learnings` table (created in migration `00020_create_success_m
 ---
 
 ### 2026-01-21: "What's Next Today" Interactive Task System ✅
+
+---
+
+### 2026-02-05: Robust Password Reset & PWA Auth Logic ✅
+
+**Finalized a robust, standard-compliant Password Reset flow that works across Browser and PWA contexts.**
+
+#### 1. The "Golden Path" for Password Reset (Supabase PKCE)
+We moved away from "Magic Links" for resets and strictly aligned with Supabase's Recovery Flow.
+
+*   **Trigger:** `login/page.tsx` calls `supabase.auth.resetPasswordForEmail()` -> Sends "Reset Password" template.
+*   **Email Link:** Points to `https://member.m246.org/auth/confirm` (NOT generic callback).
+*   **Verification (Critical):** `auth/confirm/route.ts` behaves as the **Server-Side Exchange**. It verifies the `token_hash` securely on the server, establishes the session cookie, and *then* redirects to `/reset-password`.
+*   **Update:** `/reset-password` page is dumb/simple. It strictly checks "Do I have a session?". If yes, allow update. If no (after timeout), redirect to login.
+
+**Why this works:** It avoids client-side code exchange race conditions and ensures the secure session is ready before the UI loads.
+
+#### 2. PWA vs. Browser Context Isolation
+We discovered that starting a reset in the PWA (Standalone) but finishing it in the System Browser (Safari/Chrome) breaks because **Cookies do not share**.
+
+*   **The Fix:** `login/page.tsx` detects PWA mode (`display-mode: standalone`).
+*   **Behavior:** If in PWA, clicking "Forgot Password" creates a **Modal Halt**. It forces the user to copy the link and open it in their System Browser.
+*   **Result:** The entire flow (Request -> Link -> Verify) happens in **one browser context**, preserving the `code-verifier` cookie.
+
+#### 3. Known Issue / Todo
+*   **PWA Logout Crash:** Currently, logging out inside the PWA triggers a generic "Client-side exception" screen instead of a clean redirect.
+    *   *Workaround:* User must restart app.
+    *   *Status:* To be fixed in future sprint.
 
 **New `/router` page with progressive task unlocking system.**
 

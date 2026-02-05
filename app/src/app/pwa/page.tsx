@@ -64,7 +64,16 @@ export default function PWAPage() {
     const [showHelp, setShowHelp] = useState(false)
 
     useEffect(() => {
-        // Check if running in standalone mode (opened from homescreen)
+        // FIRST: Check for auth tokens in URL hash (password reset flow)
+        // Supabase redirects here with #access_token=xxx&refresh_token=xxx&type=recovery
+        const hash = window.location.hash
+        if (hash && hash.includes('access_token')) {
+            // Redirect to password reset page with tokens
+            window.location.replace('/reset-password' + hash)
+            return
+        }
+
+        // THEN: Check if running in standalone mode (opened from homescreen)
         const isStandalone =
             window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as any).standalone === true

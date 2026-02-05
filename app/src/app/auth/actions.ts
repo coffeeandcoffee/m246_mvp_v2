@@ -124,3 +124,28 @@ export async function signout() {
     await supabase.auth.signOut()
     redirect('/')
 }
+
+// ============================================================================
+// RESET PASSWORD - Sends password reset email
+// ============================================================================
+
+export async function resetPassword(formData: FormData) {
+    const email = formData.get('email') as string
+
+    if (!email) {
+        return { error: 'Email is required' }
+    }
+
+    const supabase = await createClient()
+
+    // Redirect to reset-password for CLIENT-SIDE code exchange (has code verifier)
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://member.m246.org/reset-password',
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    return { success: true }
+}
